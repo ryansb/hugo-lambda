@@ -1,0 +1,21 @@
+---
+region: us-east-1
+cloudformation:
+  template: roles.cf
+  stack_name: HugoLambdaRoleManager
+  exec_role: ExecRole
+  invoke_role: InvokeRole
+lambda:
+  name: S3Hugo
+  zipfile_name: S3Hugo.zip
+  description: An S3-triggered rebuild of a static site.
+  path: examplefolder/
+  handler: CreateThumbnail.handler
+  runtime: nodejs
+  memory_size: 128
+  timeout: 3
+  mode: event
+  test_data: input.json
+  event_source: arn:aws:s3:::rsb.io
+  s3_events:
+    - s3:ObjectCreated:*
