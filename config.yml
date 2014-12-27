@@ -9,8 +9,8 @@ lambda:
   name: S3Hugo
   zipfile_name: S3Hugo.zip
   description: An S3-triggered rebuild of a static site.
-  path: examplefolder/
-  handler: CreateThumbnail.handler
+  path: hugo-libs/
+  handler: RunHugo.handler
   runtime: nodejs
   memory_size: 128
   timeout: 3
