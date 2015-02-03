@@ -16,16 +16,16 @@ func PutExecute(cmd *cobra.Command, args []string) (err error) {
 	)
 	s3 := awss3.New(awsCreds, cmd.Flag("region").Value.String(), nil)
 
-	var acl awss3.StringValue
+	var acl aws.StringValue
 	switch a := cmd.Flag("acl").Value.String(); a {
 	case "private":
 		acl = aws.String(awss3.BucketCannedACLPrivate)
 	case "authenticated-read":
-		acl = aws.String(BucketCannedACLAuthenticatedRead)
+		acl = aws.String(awss3.BucketCannedACLAuthenticatedRead)
 	case "public-read":
-		acl = aws.String(BucketCannedACLPublicRead)
+		acl = aws.String(awss3.BucketCannedACLPublicRead)
 	case "public-read-write":
-		acl = aws.String(BucketCannedACLPublicReadWrite)
+		acl = aws.String(awss3.BucketCannedACLPublicReadWrite)
 	default:
 		acl = aws.String(awss3.BucketCannedACLPrivate)
 	}
