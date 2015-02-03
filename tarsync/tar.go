@@ -35,13 +35,7 @@ func TarExecute(cmd *cobra.Command, args []string) (err error) {
 	}
 	defer w.Close()
 
-	if cmd.Flag("compress").Changed {
-		gzw := gzip.NewWriter(w)
-		defer gzw.Close()
-		err = tarBucket(s3, cmd.Flag("bucket").Value.String(), gzw)
-	} else {
-		err = tarBucket(s3, cmd.Flag("bucket").Value.String(), w)
-	}
+	err = tarBucket(s3, cmd.Flag("bucket").Value.String(), gzw, cmd.Flag("compress").Changed)
 	return
 }
 
@@ -51,7 +45,8 @@ type fileInfo struct {
 	Body io.ReadCloser
 }
 
-func tarBucket(s3 *awss3.S3, bucket string, w io.Writer) (err error) {
+func tarBucket(s3 *awss3.S3, bucket string, w io.Writer, compress bool) (err error) {
+
 	var wg sync.WaitGroup
 	// allow up to 1000 keys to be buffered
 	workChan := make(chan string, 1000)
@@ -60,7 +55,14 @@ func tarBucket(s3 *awss3.S3, bucket string, w io.Writer) (err error) {
 	go listBucket(s3, bucket, workChan)
 
 	// make a tarfile
-	tarIo := tar.NewWriter(w)
+	var tarIo tar.Writer
+	if compress {
+		gzw := gzip.NewWriter(w)
+		defer gzw.Close()
+		tarIo := tar.NewWriter(gzw)
+	} else {
+		tarIo := tar.NewWriter(w)
+	}
 
 	// get all the keys
 	doneChan := make(chan *fileInfo)
