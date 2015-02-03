@@ -2,6 +2,7 @@ package main
 
 import (
 	"archive/tar"
+	"compress/gzip"
 	"io"
 	"log"
 	"os"
@@ -34,37 +35,57 @@ func TarExecute(cmd *cobra.Command, args []string) (err error) {
 	}
 	defer w.Close()
 
+	if cmd.Flag("compress").Changed {
+		gzw := gzip.NewWriter(w)
+		defer gzw.Close()
+		err = tarBucket(s3, cmd.Flag("bucket").Value.String(), gzw)
+	} else {
+		err = tarBucket(s3, cmd.Flag("bucket").Value.String(), w)
+	}
+	return
+}
+
+type fileInfo struct {
+	Name string
+	Size int64
+	Body io.ReadCloser
+}
+
+func tarBucket(s3 *awss3.S3, bucket string, w io.Writer) (err error) {
 	var wg sync.WaitGroup
 	// allow up to 1000 keys to be buffered
 	workChan := make(chan string, 1000)
 
 	// list all of the objects and add their keys to a work channel
-	go listBucket(s3, cmd.Flag("bucket").Value.String(), workChan)
+	go listBucket(s3, bucket, workChan)
 
 	// make a tarfile
 	tarIo := tar.NewWriter(w)
 
 	// get all the keys
-	doneChan := make(chan *fileInfo, 25)
-	for file := range workChan {
+	doneChan := make(chan *fileInfo)
+	for i := 0; i < 30; i++ {
+		// worker pool of 30 goroutines to grab all the actual files
 		wg.Add(1)
-		go func(key string) {
-			resp, err := s3.GetObject(&awss3.GetObjectRequest{
-				Key:    aws.String(key),
-				Bucket: aws.String(cmd.Flag("bucket").Value.String()),
-			})
-			if err != nil {
-				log.Fatalln("Found error %s", err.Error())
-				return
+		go func() {
+			for key := range workChan {
+				resp, err := s3.GetObject(&awss3.GetObjectRequest{
+					Key:    aws.String(key),
+					Bucket: aws.String(bucket),
+				})
+				if err != nil {
+					log.Fatalln("Found error %s", err.Error())
+					return
+				}
+				fi := &fileInfo{
+					Name: key,
+					Size: *resp.ContentLength,
+					Body: resp.Body,
+				}
+				doneChan <- fi
 			}
-			fi := &fileInfo{
-				Name: key,
-				Size: *resp.ContentLength,
-				Body: resp.Body,
-			}
-			doneChan <- fi
 			wg.Done()
-		}(file)
+		}()
 	}
 
 	go func() {
@@ -103,12 +124,6 @@ func TarExecute(cmd *cobra.Command, args []string) (err error) {
 
 	err = tarIo.Close()
 	return
-}
-
-type fileInfo struct {
-	Name string
-	Size int64
-	Body io.ReadCloser
 }
 
 func listBucket(s3 *awss3.S3, bucket string, workChan chan string) {
