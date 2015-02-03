@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io"
+	"log"
 	"os"
 
 	"github.com/awslabs/aws-sdk-go/aws"
@@ -15,9 +17,35 @@ func PutExecute(cmd *cobra.Command, args []string) (err error) {
 		"",
 	)
 	s3 := awss3.New(awsCreds, cmd.Flag("region").Value.String(), nil)
+	bucket := cmd.Flag("bucket").Value.String()
+	if bucket == "" {
+		log.Fatalln("no target bucket")
+	}
+	key := cmd.Flag("key").Value.String()
+	if key == "" {
+		log.Fatalln("no target bucket")
+	}
 
+	in := cmd.Flag("source").Value.String()
+	r, err := os.Open(in)
+	if err != nil {
+		if in == "" {
+			log.Fatalln("STDIN is not yet supported. It will be added with multipart uploads")
+			r = os.Stdin
+			err = nil
+		} else {
+			return
+		}
+	}
+	defer r.Close()
+	s, _ := r.Stat()
+	err = putObject(s3, bucket, key, r, cmd.Flag("acl").Value.String(), s.Size())
+	return
+}
+
+func putObject(s3 *awss3.S3, bucket string, key string, r io.ReadCloser, a string, size int64) (err error) {
 	var acl aws.StringValue
-	switch a := cmd.Flag("acl").Value.String(); a {
+	switch a {
 	case "private":
 		acl = aws.String(awss3.BucketCannedACLPrivate)
 	case "authenticated-read":
@@ -29,22 +57,13 @@ func PutExecute(cmd *cobra.Command, args []string) (err error) {
 	default:
 		acl = aws.String(awss3.BucketCannedACLPrivate)
 	}
-
-	in := cmd.Flag("source").Value.String()
-	r, err := os.Open(in)
-	if err != nil {
-		if in == "" {
-			r = os.Stdin
-		} else {
-			return
-		}
-	}
-	defer r.Close()
 	_, err = s3.PutObject(&awss3.PutObjectRequest{
-		Key:          aws.String(cmd.Flag("key").Value.String()),
-		Body:         r,
-		ACL:          acl,
-		StorageClass: aws.String(awss3.ObjectStorageClassStandard),
+		Key:           aws.String(key),
+		Bucket:        aws.String(bucket),
+		Body:          r,
+		ContentLength: aws.Long(size),
+		ACL:           acl,
+		StorageClass:  aws.String(awss3.ObjectStorageClassStandard),
 	})
 	return
 }

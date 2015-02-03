@@ -38,6 +38,7 @@ func main() {
 	cmdTar.Flags().StringVarP(&outFile, "outfile", "o", "", "Outfile to use, default stdout")
 	cmdTar.Flags().BoolVarP(&compress, "compress", "c", false, "Whether to gzip the file or not")
 
+	cmdPut.Flags().StringVarP(&bucket, "bucket", "b", "", "S3 bucket to use")
 	cmdPut.Flags().StringVarP(&key, "key", "k", "", "Key to save file to")
 	cmdPut.Flags().StringVarP(&source, "source", "s", "", "Source to save. Default stdin")
 	cmdPut.Flags().StringVar(&acl, "acl", "private", "Options: authenticated-read, private, public-read, public-read-write")

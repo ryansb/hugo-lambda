@@ -35,7 +35,7 @@ func TarExecute(cmd *cobra.Command, args []string) (err error) {
 	}
 	defer w.Close()
 
-	err = tarBucket(s3, cmd.Flag("bucket").Value.String(), gzw, cmd.Flag("compress").Changed)
+	err = tarBucket(s3, cmd.Flag("bucket").Value.String(), w, cmd.Flag("compress").Changed)
 	return
 }
 
@@ -55,13 +55,13 @@ func tarBucket(s3 *awss3.S3, bucket string, w io.Writer, compress bool) (err err
 	go listBucket(s3, bucket, workChan)
 
 	// make a tarfile
-	var tarIo tar.Writer
+	var tarIo *tar.Writer
 	if compress {
 		gzw := gzip.NewWriter(w)
 		defer gzw.Close()
-		tarIo := tar.NewWriter(gzw)
+		tarIo = tar.NewWriter(gzw)
 	} else {
-		tarIo := tar.NewWriter(w)
+		tarIo = tar.NewWriter(w)
 	}
 
 	// get all the keys
