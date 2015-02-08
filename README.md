@@ -64,7 +64,9 @@ finished site and serves it to the world.
 
 ## Developing
 
-When working on the functions, I recommend using [kappa][kappa] 
+When working on the functions, I recommend using [kappa][kappa] to re-upload
+and trigger the function you've made changes to. Instructions are available in
+kappa's README.
 
 ## CloudFormation
 
@@ -82,9 +84,9 @@ and will make the correct [Route53][r53] aliases to make your site accessible.
 
 Right now, the following resources are created by the template
 
-1. 4 buckets: input.ROOT, tar.ROOT, www.ROOT, and ROOT
-1. 2 domain records: one for your apex (ROOT) and one for www.ROOT, which
-   redirects to ROOT via the www.ROOT bucket.
+1. 4 buckets: `input.ROOT`, `tar.ROOT`, `www.ROOT`, and `ROOT`
+1. 2 domain records: one for your apex and one for `www.ROOT`, which redirects
+   to `ROOT` via the `www.ROOT` bucket.
 1. InvokeRole IAM role. The InvokeRole is allowed to trigger lambda functions
    and is used primarily for development
 1. ExecRole IAM Role. The ExecRole is the role that the lambda functions take
