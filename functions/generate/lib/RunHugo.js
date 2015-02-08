@@ -7,29 +7,33 @@ var spawn = require('child_process').spawn;
 var s3 = new AWS.S3();
 var lockKey = '.lambda_lock';
 
+function newLock(params, callback) {
+    params['Body'] = (new Date).toString();
+    s3.upload(params, function(err, data) {
+        if (err) console.log(err, err.stack); // an error occurred
+        else     console.log(data);           // successful response
+        callback(err);
+    });
+}
+
 function lockBucket(srcBucket, callback) {
     var lockValidMinutes = 5;
     var maxAge = new Date(new Date - lockValidMinutes * 60000);
     params = {
         Bucket: srcBucket,
         Key: lockKey,
-    }
+    };
     s3.headObject(params, function (err, data) {
         if (err) {
-            console.log(err, err.stack); // an error occurred
-            callback(err);
-            return; // bail on errors
+            console.log("Lockfile not found, err: " + err);
+            newLock(params, callback);
+            return;
         }
-        console.log(data);           // successful response
-        if data.LastModified < maxAge {
-            // the lock has expired
+        console.log("Success checking for lock: " + data);
+        if (data.LastModified < maxAge) {
+            console.log("Lock has expired");
             // create a new lock and wait for it to propagate
-            params['Body'] = (new Date).getTime();
-            s3.upload(params, function(err, data) {
-                if (err) console.log(err, err.stack); // an error occurred
-                else     console.log(data);           // successful response
-                callback(err);
-            })
+            newLock(params, callback);
         } else {
             callback(null);
         }
@@ -41,49 +45,50 @@ exports.handler = function(event, context) {
     console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
     var srcBucket = event.Records[0].s3.bucket.name;
     var srcKey    = event.Records[0].s3.object.key;
-    if (! (/^sources/i).test(key) || key == "lols/index.html" ) {
-        context.done(null, "outta. we only care about lols.");
-        return;
-    }
+    var dstBucket = event.Records[0].s3.bucket.name.replace('sources.', '');
 
     async.waterfall([
             function lock(next) {
                 // Make/renew lock key on the bucket
+                console.log("Locking...");
                 lockBucket(srcBucket, next);
             },
             function waitForLock(next) {
                 // wait for the lock to propagate
+                console.log("Waiting for lock...");
                 s3.waitFor('objectExists', {
                     Bucket: srcBucket,
                     Key: lockKey,
                 }, next);
             },
-            function downloadSources(next) {
+            function listItems(next) {
                 // download everything in BUCKET/sources
+                console.log("Listing site items...");
                 s3.listObjects({
                     Bucket: srcBucket, /* required */
-                    Delimiter: '/',
                     EncodingType: 'url',
-                    MaxKeys: 0,
-                    Prefix: 'sources/'
-                }, next);
+                }, function(err, data) {
+                    console.log("Done listing...");
+                    next(err, data);
+                });
             },
             function downloadSources(response, next) {
-                // download everything in BUCKET/sources
+                // download everything in sources.BUCKET
+                console.log("Downloading sources...");
                 parallel.each(
-                    response.Contents,
-                    function(item, cb) {
-                        s3.getObject({
-                            Bucket: srcBucket,
-                            Key: item.Key,
-                        }, function(err, data) {
-                            if (err) cb(err);
-                            else     cb(null);
-                        })
-                    },
-                    next);
+                        response['Contents'],
+                        function(item, cb) {
+                            s3.getObject({
+                                Bucket: srcBucket,
+                                Key: item.Key,
+                            }, function(err, data) {
+                                if (err) cb(err);
+                                else     cb(null);
+                            })
+                        }, next);
             },
             function runHugo(next) {
+                console.log("Running hugo....");
                 var child = spawn("./hugo", [], {});
                 child.stdout.on('data', function (data) {
                     console.log('hugo-stdout: ' + data);
@@ -104,6 +109,7 @@ exports.handler = function(event, context) {
             function uploadOutput(next) {
                 // upload hugo's output to S3
                 // marking new items as global-read
+                next(null);
             },
             function unlockBucket(next) {
                 s3.deleteObject({
@@ -111,10 +117,10 @@ exports.handler = function(event, context) {
                     Key: lockKey,
                 }, next);
             },
-    ], function(err) {
-        if (err) console.error("Failure because of: " + err)
-        else console.log("All methods in waterfall succeeded.");
+        ], function(err) {
+            if (err) console.error("Failure because of: " + err)
+            else console.log("All methods in waterfall succeeded.");
 
-        context.done();
-    });
+            context.done();
+        });
 };

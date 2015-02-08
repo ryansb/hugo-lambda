@@ -1,0 +1,22 @@
+---
+region: us-east-1
+cloudformation:
+  template: ../hugo-lambda.cfn
+  stack_name: HugoLambdaStack
+  exec_role: ExecRole
+  invoke_role: InvokeRole
+lambda:
+  name: HugoLambdaCompress
+  zipfile_name: HugoCompress.zip
+  description: An S3-triggered aggregation of static content
+  path: lib/
+  handler: CompressSources.handler
+  runtime: nodejs
+  memory_size: 128
+  timeout: 5
+  mode: event
+  test_data: input.json
+  event_sources:
+    - arn: arn:aws:s3:::input.rsb.io
+  s3_events:
+    - s3:ObjectCreated:*
