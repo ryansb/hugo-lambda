@@ -19,6 +19,7 @@ _Basic functionality checklist_
 _Advanced functionality checklist_
 
 - [ ] CloudFormation template to set up cross-domain IAM auth
+- [ ] CloudFormation conditions for users who don't want to use Route53
 - [ ] in-browser markdown editor
 - [ ] Set lifecycle rules and RRS policy for tar bucket
 - [ ] SNS cancellation for in-progress jobs to reduce redundant hugo runs
@@ -92,6 +93,18 @@ Right now, the following resources are created by the template
 1. ExecRole IAM Role. The ExecRole is the role that the lambda functions take
    on when they execute. Thi role gets access to the S3 buckets to upload and
    download content.
+
+### Troubleshooting - Oops, my stack failed!
+
+The most common problem you'll hit is probably not having a Route53 record set
+for your domain. The stack won't create one, so it'll fail instead. To get
+around this you can just delete the "SiteDNS" resource. Nothing depends on it,
+so no worries.
+
+The next one will probably be IAM problems. If this happens, make sure you have
+the permissions to create/edit IAM roles. Typically if you aren't an
+administrator on your account (or are using a scoped-down IAM role yourself),
+you won't have the permissions to do this.
 
 ## Contributing
 
