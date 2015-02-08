@@ -14,7 +14,6 @@ var syncClient = s3.createClient({
     maxAsyncS3: 50,
 });
 
-
 exports.handler = function(event, context) {
     // Read options from the event.
     console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
@@ -43,7 +42,8 @@ exports.handler = function(event, context) {
             function prepSources(next) {
                 // tar+gz the content
                 console.log("compressing sources....");
-                var child = spawn("./tar" ["--transform 's/^sources//'", "-czf", "sources.tar.gz", "sources/"], {});
+                //var child = spawn("./tar" ["--transform 's/^sources//'", "-czf", "sources.tar.gz", "sources/"], {});
+                var child = spawn("./tar" ["czf", "sources.tar.gz", "sources/"], {});
                 child.stdout.on('data', function (data) {
                     console.log('tar-stdout: ' + data);
                 });

@@ -3,42 +3,16 @@ var async = require('async');
 var AWS = require('aws-sdk');
 var util = require('util');
 var spawn = require('child_process').spawn;
+var s3 = require('s3');
 
-var s3 = new AWS.S3();
-var lockKey = '.lambda_lock';
-
-function newLock(params, callback) {
-    params['Body'] = (new Date).toString();
-    s3.upload(params, function(err, data) {
-        if (err) console.log(err, err.stack); // an error occurred
-        else     console.log(data);           // successful response
-        callback(err);
-    });
-}
-
-function lockBucket(srcBucket, callback) {
-    var lockValidMinutes = 5;
-    var maxAge = new Date(new Date - lockValidMinutes * 60000);
-    params = {
-        Bucket: srcBucket,
-        Key: lockKey,
-    };
-    s3.headObject(params, function (err, data) {
-        if (err) {
-            console.log("Lockfile not found, err: " + err);
-            newLock(params, callback);
-            return;
-        }
-        console.log("Success checking for lock: " + data);
-        if (data.LastModified < maxAge) {
-            console.log("Lock has expired");
-            // create a new lock and wait for it to propagate
-            newLock(params, callback);
-        } else {
-            callback(null);
-        }
-    });
-}
+var s3client = new AWS.S3();
+var syncClient = s3.createClient({
+    s3Client: s3client,
+    multipartUploadThreshold: 5 * 1024 * 1024, // use multipart upload at 5MB
+    multipartUploadSize: 5 * 1024 * 1024,
+    s3RetryDelay: 50,
+    maxAsyncS3: 50,
+});
 
 exports.handler = function(event, context) {
     // Read options from the event.
@@ -48,29 +22,51 @@ exports.handler = function(event, context) {
     var dstBucket = event.Records[0].s3.bucket.name.replace('tar.', '');
 
     async.waterfall([
-            function downloadSources(response, next) {
+            function downloadSources(next) {
                 // download source tarball
                 console.log("Downloading sources...");
-                s3.getObject({
-                    Bucket: srcBucket,
-                    Key: item.Key,
-                }, function(err, data) {
-                    if (err) console.log("Error downloading sources", err);
-                    if (err) cb(err);
-                    else     cb(null);
+                var downloader = syncClient.downloadFile({
+                    localFile: "./sources.tar.gz",
+                    s3Params: {
+                        Bucket: srcBucket,
+                        Key: item.Key,
+                    },
+                });
+                downloader.on('error', function(err) {
+                    console.error("unable to upload:", err.stack);
+                    next(err);
+                });
+                downloader.on('end', function() {
+                    console.log("done uploading");
+                    next(null);
                 });
             },
             function prepSources(next) {
                 // Untar/gz the source to a working dir
+                console.log("compressing sources....");
+                var child = spawn("./tar" ["xzf", "sources.tar.gz"], {});
+                child.stdout.on('data', function (data) {
+                    console.log('tar-stdout: ' + data);
+                });
+                child.stderr.on('data', function (data) {
+                    console.log('tar-stderr: ' + data);
+                });
+                child.on('error', function(err) {
+                    console.log("tar: " + err);
+                    next(err);
+                });
+                child.on('close', function(code) {
+                    console.log("tar exited with code: " + code);
+                    next(null);
+                });
                 cb(null);
             },
             function runHugo(next) {
                 console.log("Running hugo....");
-                var child = spawn("./hugo", [], {});
+                var child = spawn("./hugo", ["-s", "sources/", "-d", "public"], {});
                 child.stdout.on('data', function (data) {
                     console.log('hugo-stdout: ' + data);
                 });
-
                 child.stderr.on('data', function (data) {
                     console.log('hugo-stderr: ' + data);
                 });
@@ -86,7 +82,19 @@ exports.handler = function(event, context) {
             function uploadOutput(next) {
                 // upload hugo's output to S3
                 // marking new items as global-read
-                next(null);
+                var uploader = syncClient.uploadDir({
+                    localDir: "./public",
+                    s3Params: {Prefix: "/", Bucket: dstBucket},
+                    ACL: "public-read",
+                });
+                uploader.on('error', function(err) {
+                    console.error("unable to sync:", err.stack);
+                    next(err);
+                });
+                uploader.on('end', function() {
+                    console.log("done uploading generated site");
+                    next(null);
+                });
             },
         ], function(err) {
             if (err) console.error("Failure because of: " + err)
