@@ -45,47 +45,24 @@ exports.handler = function(event, context) {
     console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
     var srcBucket = event.Records[0].s3.bucket.name;
     var srcKey    = event.Records[0].s3.object.key;
-    var dstBucket = event.Records[0].s3.bucket.name.replace('sources.', '');
+    var dstBucket = event.Records[0].s3.bucket.name.replace('tar.', '');
 
     async.waterfall([
-            function lock(next) {
-                // Make/renew lock key on the bucket
-                console.log("Locking...");
-                lockBucket(srcBucket, next);
-            },
-            function waitForLock(next) {
-                // wait for the lock to propagate
-                console.log("Waiting for lock...");
-                s3.waitFor('objectExists', {
+            function downloadSources(response, next) {
+                // download source tarball
+                console.log("Downloading sources...");
+                s3.getObject({
                     Bucket: srcBucket,
-                    Key: lockKey,
-                }, next);
-            },
-            function listItems(next) {
-                // download everything in BUCKET/sources
-                console.log("Listing site items...");
-                s3.listObjects({
-                    Bucket: srcBucket, /* required */
-                    EncodingType: 'url',
+                    Key: item.Key,
                 }, function(err, data) {
-                    console.log("Done listing...");
-                    next(err, data);
+                    if (err) console.log("Error downloading sources", err);
+                    if (err) cb(err);
+                    else     cb(null);
                 });
             },
-            function downloadSources(response, next) {
-                // download everything in sources.BUCKET
-                console.log("Downloading sources...");
-                parallel.each(
-                        response['Contents'],
-                        function(item, cb) {
-                            s3.getObject({
-                                Bucket: srcBucket,
-                                Key: item.Key,
-                            }, function(err, data) {
-                                if (err) cb(err);
-                                else     cb(null);
-                            })
-                        }, next);
+            function prepSources(next) {
+                // Untar/gz the source to a working dir
+                cb(null);
             },
             function runHugo(next) {
                 console.log("Running hugo....");
@@ -110,12 +87,6 @@ exports.handler = function(event, context) {
                 // upload hugo's output to S3
                 // marking new items as global-read
                 next(null);
-            },
-            function unlockBucket(next) {
-                s3.deleteObject({
-                    Bucket: srcBucket,
-                    Key: lockKey,
-                }, next);
             },
         ], function(err) {
             if (err) console.error("Failure because of: " + err)
