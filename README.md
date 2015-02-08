@@ -5,6 +5,9 @@ A wrapper around the [hugo][hugo] static site generator to have it run in
 
 ## Project status
 
+[![forthebadge](http://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
+[![forthebadge](http://forthebadge.com/images/badges/uses-badges.svg)](http://forthebadge.com)
+
 Ultra-alpha. 
 
 _Basic functionality checklist_
