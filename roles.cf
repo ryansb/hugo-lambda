@@ -26,9 +26,9 @@
                 "AccessControl": "BucketOwnerFullControl", 
                 "BucketName": {
                     "Fn::Join": [
-                        "", 
+                        ".", 
                         [
-                            "www.", 
+                            "www", 
                             {
                                 "Ref": "DomainRoot"
                             }
@@ -140,9 +140,9 @@
                 "AccessControl": "BucketOwnerFullControl", 
                 "BucketName": {
                     "Fn::Join": [
-                        "", 
+                        ".", 
                         [
-                            "input.", 
+                            "input", 
                             {
                                 "Ref": "DomainRoot"
                             }
@@ -158,9 +158,9 @@
                 "AccessControl": "BucketOwnerFullControl", 
                 "BucketName": {
                     "Fn::Join": [
-                        "", 
+                        ".", 
                         [
-                            "tars.", 
+                            "tar", 
                             {
                                 "Ref": "DomainRoot"
                             }
@@ -338,7 +338,7 @@
                                     "", 
                                     [
                                         "arn:aws:s3:::", 
-                                        "tars.", 
+                                        "tar", 
                                         {
                                             "Ref": "DomainRoot"
                                         }
@@ -354,7 +354,7 @@
                                     "", 
                                     [
                                         "arn:aws:s3:::", 
-                                        "tars.", 
+                                        "tar", 
                                         {
                                             "Ref": "DomainRoot"
                                         }, 
