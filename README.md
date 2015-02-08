@@ -62,6 +62,31 @@ your site. The second is `tar.yoursite.com` which holds tarred and gzipped
 snapshots of your site. The final bucket is the website bucket that holds the
 finished site and serves it to the world.
 
+## CloudFormation
+
+Ok, that CFN template is pretty large/gross. To make it easier to manage and
+edit, I've moved to editing it in YAML and generating the JSON version to send
+to AWS. If you edit the YAML, you can regenerate the JSON template one of two
+ways.
+
+1. Make sure the `PyYAML` module is installed and run `make`
+1. Use a site like [yamltojson.com](http://yamltojson.com/)
+
+To use it, you'll need to provide the base domain of your site. For example,
+mine is [rsb.io](http://rsb.io). This will determine the name of your buckets
+and will make the correct [Route53][r53] aliases to make your site accessible.
+
+Right now, the following resources are created by the template
+
+1. 4 buckets: input.ROOT, tar.ROOT, www.ROOT, and ROOT
+1. 2 domain records: one for your apex (ROOT) and one for www.ROOT, which
+   redirects to ROOT via the www.ROOT bucket.
+1. InvokeRole IAM role. The InvokeRole is allowed to trigger lambda functions
+   and is used primarily for development
+1. ExecRole IAM Role. The ExecRole is the role that the lambda functions take
+   on when they execute. Thi role gets access to the S3 buckets to upload and
+   download content.
+
 ## License
 
 This project is released under the GNU Affero General Public License, see
