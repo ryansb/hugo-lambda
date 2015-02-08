@@ -62,6 +62,10 @@ your site. The second is `tar.yoursite.com` which holds tarred and gzipped
 snapshots of your site. The final bucket is the website bucket that holds the
 finished site and serves it to the world.
 
+## Developing
+
+When working on the functions, I recommend using [kappa][kappa] 
+
 ## CloudFormation
 
 Ok, that CFN template is pretty large/gross. To make it easier to manage and
@@ -87,10 +91,15 @@ Right now, the following resources are created by the template
    on when they execute. Thi role gets access to the S3 buckets to upload and
    download content.
 
-## License
+## Contributing
+
+Questions, suggestions, bug reports, and contributions are welcome as pull
+requests or issues on this repo.  Please see the [Contributor code of
+conduct][conduct] for community guidelines.
 
 This project is released under the GNU Affero General Public License, see
 [LICENSE.txt][license] for the full text of the license.
+
 
 [hugo]: https://github.com/spf13/hugo
 [lambda]: https://aws.amazon.com/lambda/
@@ -98,3 +107,4 @@ This project is released under the GNU Affero General Public License, see
 [kappa]: https://github.com/garnaat/kappa
 [s3site]: http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html
 [license]: https://github.com/ryansb/hugo-lambda/blob/master/LICENSE.txt
+[conduct]: https://github.com/ryansb/hugo-lambda/blob/master/CODE_OF_CONDUCT.md
