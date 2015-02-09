@@ -1,0 +1,37 @@
+{
+  "Records": [
+    {
+      "s3": {
+        "object": {
+          "eTag": "50ed8c18234b65e3baf1417eac1bb03f",
+          "size": 307,
+          "key": "content/jobs/fossbox.md"
+        },
+        "bucket": {
+          "arn": "arn:aws:s3:::input.test.rsb.io",
+          "ownerIdentity": {
+            "principalId": "A1LA3Q6S7ANKDV"
+          },
+          "name": "input.test.rsb.io"
+        },
+        "configurationId": "Kappa-HugoLambdaCompress-notification",
+        "s3SchemaVersion": "1.0"
+      },
+      "eventVersion": "2.0",
+      "eventSource": "aws:s3",
+      "awsRegion": "us-east-1",
+      "eventTime": "2015-02-08T22:50:04.028Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AWS:AIDAJKYN7TTQ6XB6JS7FW"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "64.134.240.129"
+      },
+      "responseElements": {
+        "x-amz-id-2": "l3GSDL5CGzsTAyVnWn9oWaeWuCs+Vic/Z0jmp/uZtfqoqhPiERu3u2GjhbAOQWf23X0qEsKgvzM=",
+        "x-amz-request-id": "FEB7EFA6E7254AA4"
+      }
+    }
+  ]
+}
