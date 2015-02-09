@@ -3,21 +3,12 @@
 
 // dependencies
 var AWS = require('aws-sdk');
+var fs = require('fs');
 var async = require('async');
 var spawn = require('child_process').spawn;
-var s3 = require('s3');
-var targz = require('tar.gz');
 var util = require('util');
 
-var cwd = "/var/task/"
-var s3client = new AWS.S3();
-var syncClient = s3.createClient({
-    s3Client: s3client,
-    multipartUploadThreshold: 5 * 1024 * 1024, // use multipart upload at 5MB
-    multipartUploadSize: 5 * 1024 * 1024,
-    s3RetryDelay: 50,
-    //maxAsyncS3: 50,
-});
+var cwd = "/tmp/"
 
 exports.handler = function(event, context) {
     // Read options from the event.
@@ -29,27 +20,26 @@ exports.handler = function(event, context) {
     async.waterfall(
         [
             function downloadSources(next) {
-                // download source tarball
-                console.log("Downloading sources...");
-                var downloader = syncClient.downloadDir({
-                    localDir: cwd + "sources",
-                    s3Params: {Prefix: "/", Bucket: srcBucket},
+                console.log("Pulling sources")
+                var child = spawn("./tarsync", ["tar", "-c", "--bucket="+srcBucket, "--outfile="+cwd+"sources.tar.gz"], {});
+                child.stdout.on('data', function (data) {
+                    console.log('tarsync-stdout: ' + data);
                 });
-                downloader.on('error', function(err) {
-                    console.error("unable to sync:", err.stack);
+                child.stderr.on('data', function (data) {
+                    console.log('tarsync-stderr: ' + data);
+                });
+                child.on('error', function(err) {
+                    console.log("tarsync failed with error: " + err);
                     next(err);
                 });
-                downloader.on('progress', function() {
-                    console.log("progress amount: " + downloader.progressAmount + ", progress total: " + downloader.progressTotal)
-                });
-                downloader.on('end', function() {
-                    console.log("done downloading");
+                child.on('close', function(code) {
+                    console.log("tarsync exited with code: " + code);
                     next(null);
                 });
             },
-            function prepSources(next) {
+            function showSources(next) {
                 console.log("listing cwd")
-                var child = spawn("ls", ["-la"], {});
+                var child = spawn("ls", ["-lah"], {});
                 child.stdout.on('data', function (data) {
                     console.log('ls-stdout: ' + data);
                 });
@@ -65,33 +55,22 @@ exports.handler = function(event, context) {
                     next(null);
                 });
             },
-            function prepSources(next) {
-                // tar+gz the content
-                console.log("compressing sources....");
-                var compress = new targz().compress(cwd + 'sources', cwd + 'sources.tar.gz', function(err){
-                    console.log('The compression has ended!');
-                    if(err) next(err);
-                    else    next(null);
-                });
-            },
             function uploadOutput(next) {
                 // upload tarball to S3 tarbucket
-                var uploader = syncClient.uploadFile({
-                    localFile: cwd + "sources.tar.gz",
-                    s3Params: {
+                var body = fs.createReadStream(cwd+'sources.tar.gz');
+                var s3obj = new AWS.S3.ManagedUpload({
+                    params: {
                         Bucket: dstBucket,
                         Key: "hugo-sources-" + (new Date()).toISOString() + ".tar.gz",
+                        Body: body,
                         ContentType: "application/x-gzip",
                         StorageClass: "REDUCED_REDUNDANCY",
-                    },
+                    }
                 });
-                uploader.on('error', function(err) {
-                    console.error("unable to upload:", err.stack);
-                    next(err);
-                });
-                uploader.on('end', function() {
-                    console.log("done uploading");
-                    next(null);
+                s3obj.send(function(err, data) {
+                    console.log(err, data);
+                    if (err) next(err);
+                    else     next(null);
                 });
             },
         ], function(err) {
