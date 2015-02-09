@@ -15,6 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const S3_WORKERS = 10
+
 func TarExecute(cmd *cobra.Command, args []string) (err error) {
 	awsCreds := aws.DetectCreds(
 		cmd.Flag("access-key-id").Value.String(),
@@ -66,8 +68,8 @@ func tarBucket(s3 *awss3.S3, bucket string, w io.Writer, compress bool) (err err
 
 	// get all the keys
 	doneChan := make(chan *fileInfo)
-	for i := 0; i < 30; i++ {
-		// worker pool of 30 goroutines to grab all the actual files
+	for i := 0; i < S3_WORKERS; i++ {
+		// worker pool of to grab all the actual files
 		wg.Add(1)
 		go func() {
 			for key := range workChan {
@@ -76,8 +78,14 @@ func tarBucket(s3 *awss3.S3, bucket string, w io.Writer, compress bool) (err err
 					Bucket: aws.String(bucket),
 				})
 				if err != nil {
-					log.Fatalln("Found error %s", err.Error())
-					return
+					switch {
+					case err.Error() == "EOF":
+						log.Println("Failure on key " + key + " retrying")
+						workChan <- key
+					default:
+						log.Fatalln("Found error %s", err.Error())
+						return
+					}
 				}
 				fi := &fileInfo{
 					Name: key,
@@ -141,6 +149,9 @@ func listBucket(s3 *awss3.S3, bucket string, workChan chan string) {
 		}
 		next = list.NextMarker
 		for _, i := range list.Contents {
+			if strings.HasSuffix(*i.Key, "/") {
+				continue
+			}
 			workChan <- *i.Key
 		}
 		if len(list.Contents) < 500 {
