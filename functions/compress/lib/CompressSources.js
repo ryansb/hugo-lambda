@@ -11,7 +11,7 @@ exports.handler = function(event, context) {
     function downloadSources() {
         console.log("Pulling sources");
         dstKey = "hugo-sources-" + (new Date()).toISOString() + ".tar.gz";
-        var child = spawn("./tarsync", ["tarstream", "-c", "--from-bucket="+srcBucket, "--to-bucket="+dstBucket, "--key"+ dstKey], {});
+        var child = spawn("./tarsync", ["tarstream", "-c", "--from-bucket="+srcBucket, "--to-bucket="+dstBucket, "--key="+ dstKey], {});
         child.stdout.on('data', function (data) {
             console.log('tarsync-stdout: ' + data);
         });

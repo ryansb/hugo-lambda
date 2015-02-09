@@ -13,10 +13,10 @@ lambda:
   handler: CompressSources.handler
   runtime: nodejs
   memory_size: 128
-  timeout: 5
+  timeout: 30
   mode: event
-  test_data: input.json
+  test_data: sample.json
   event_sources:
-    - arn: arn:aws:s3:::input.rsb.io
-  s3_events:
-    - s3:ObjectCreated:*
+    - arn: arn:aws:s3:::input.test.rsb.io
+      events:
+        - s3:ObjectCreated:*
