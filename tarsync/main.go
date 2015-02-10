@@ -2,14 +2,26 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var log = logrus.New()
+
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.Formatter = new(logrus.JSONFormatter)
+
+	// Output to stderr instead of stdout, could also be a file.
+	log.Out = os.Stderr
+}
 
 func main() {
 
 	var source, key, fromBucket, toBucket, bucket, outFile, acl string
-	var compress bool
+	var quiet, compress bool
 
 	var cmdPut = &cobra.Command{
 		//TODO: concurrent multipart uploads
@@ -18,7 +30,7 @@ func main() {
 		Long:  `Streams either stdin or key k to S3`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := PutExecute(cmd, args); err != nil {
-				fmt.Println("Command failed", err)
+				log.Fatal("Put command failed", err)
 			}
 		},
 	}
@@ -29,7 +41,7 @@ func main() {
 		Long:  `By default sends tar to stdout, or can save to a file`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := TarExecute(cmd, args); err != nil {
-				fmt.Println("Command failed", err)
+				log.Fatal("Tar command failed", err)
 			}
 		},
 	}
@@ -40,7 +52,7 @@ func main() {
 		Long:  `By default sends tar to stdout, or can save to a file`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := TarBucketExecute(cmd, args); err != nil {
-				fmt.Println("Command failed", err)
+				log.Fatal("Tarstream command failed", err)
 			}
 		},
 	}
@@ -66,6 +78,8 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&secretKey, "secret-access-key", "", "AWS secret key")
 	rootCmd.PersistentFlags().StringVar(&accessKey, "access-key-id", "", "AWS access key ID")
 	rootCmd.PersistentFlags().StringVarP(&region, "region", "r", "us-east-1", "AWS region to use")
+	// TODO actually have the --quiet flag turn down logging
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "Reduce log output")
 
 	rootCmd.AddCommand(cmdTar, cmdPut, cmdTarStream)
 	rootCmd.Execute()

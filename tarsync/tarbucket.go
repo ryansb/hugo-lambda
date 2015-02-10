@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 
 	"github.com/awslabs/aws-sdk-go/aws"
 	awss3 "github.com/awslabs/aws-sdk-go/gen/s3"
@@ -35,6 +34,7 @@ func TarBucketExecute(cmd *cobra.Command, args []string) (err error) {
 		log.Fatalln("Failed to get data")
 		return
 	}
-	err = putObject(s3, cmd.Flag("to-bucket").Value.String(), key, ioutil.NopCloser(buf), cmd.Flag("acl").Value.String(), int64(buf.Len()))
+	rdr := ioutil.NopCloser(bytes.NewReader(buf.Bytes()))
+	err = putObject(s3, cmd.Flag("to-bucket").Value.String(), key, rdr, cmd.Flag("acl").Value.String(), int64(len(buf.Bytes())))
 	return
 }

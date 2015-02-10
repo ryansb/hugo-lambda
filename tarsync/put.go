@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"log"
 	"os"
 
 	"github.com/awslabs/aws-sdk-go/aws"
@@ -19,18 +18,18 @@ func PutExecute(cmd *cobra.Command, args []string) (err error) {
 	s3 := awss3.New(awsCreds, cmd.Flag("region").Value.String(), nil)
 	bucket := cmd.Flag("bucket").Value.String()
 	if bucket == "" {
-		log.Fatalln("no target bucket")
+		log.Fatal("Target bucket not provided")
 	}
 	key := cmd.Flag("key").Value.String()
 	if key == "" {
-		log.Fatalln("no target bucket")
+		log.Fatal("Key not provided")
 	}
 
 	in := cmd.Flag("source").Value.String()
 	r, err := os.Open(in)
 	if err != nil {
 		if in == "" {
-			log.Fatalln("STDIN is not yet supported. It will be added with multipart uploads")
+			log.Fatal("STDIN is not yet supported. It will be added with multipart uploads")
 			r = os.Stdin
 			err = nil
 		} else {

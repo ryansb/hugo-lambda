@@ -4,12 +4,12 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/awslabs/aws-sdk-go/aws"
 	awss3 "github.com/awslabs/aws-sdk-go/gen/s3"
 	"github.com/spf13/cobra"
@@ -80,10 +80,14 @@ func tarBucket(s3 *awss3.S3, bucket string, w io.Writer, compress bool) (err err
 				if err != nil {
 					switch {
 					case err.Error() == "EOF":
-						log.Println("Failure on key " + key + " retrying")
+						log.Warn("Failure on key " + key + " retrying")
 						workChan <- key
 					default:
-						log.Fatalln("Found error %s", err.Error())
+						log.WithFields(logrus.Fields{
+							"key":     key,
+							"err":     err.Error(),
+							"errData": err,
+						}).Error("Found error %s", err.Error())
 						return
 					}
 				}
@@ -126,7 +130,10 @@ func tarBucket(s3 *awss3.S3, bucket string, w io.Writer, compress bool) (err err
 			AccessTime: modstamp,
 		})
 		if _, err = io.Copy(tarIo, file.Body); err != nil {
-			log.Fatalln("Failed to write tarfile", err)
+			log.WithFields(logrus.Fields{
+				"Err":     err.Error(),
+				"ErrData": err,
+			}).Fatal("Failed to write tarfile")
 			return
 		}
 		file.Body.Close()
@@ -145,7 +152,12 @@ func listBucket(s3 *awss3.S3, bucket string, workChan chan string) {
 			Marker:  next,
 		})
 		if err != nil {
-			log.Fatalln("Failed to list bucket", err)
+			log.WithFields(logrus.Fields{
+				"Err":     err.Error(),
+				"Bucket":  bucket,
+				"Marker":  next,
+				"ErrData": err,
+			}).Fatal("Failed to list bucket")
 		}
 		next = list.NextMarker
 		for _, i := range list.Contents {
