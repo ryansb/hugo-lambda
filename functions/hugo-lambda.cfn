@@ -338,7 +338,7 @@
                                     "", 
                                     [
                                         "arn:aws:s3:::", 
-                                        "tar", 
+                                        "tar.", 
                                         {
                                             "Ref": "DomainRoot"
                                         }
@@ -354,7 +354,7 @@
                                     "", 
                                     [
                                         "arn:aws:s3:::", 
-                                        "tar", 
+                                        "tar.", 
                                         {
                                             "Ref": "DomainRoot"
                                         }, 

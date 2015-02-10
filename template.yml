@@ -132,14 +132,14 @@
               Resource:
                 Fn::Join:
                   - ""
-                  - ["arn:aws:s3:::", "tar", {"Ref": "DomainRoot"}]
+                  - ["arn:aws:s3:::", "tar.", {"Ref": "DomainRoot"}]
             -
               Effect: "Allow"
               Action: "s3:*"
               Resource:
                 Fn::Join:
                   - ""
-                  - ["arn:aws:s3:::", "tar", {"Ref": "DomainRoot"}, "/*"]
+                  - ["arn:aws:s3:::", "tar.", {"Ref": "DomainRoot"}, "/*"]
         Roles:
           - {"Ref": "ExecRole"}
         PolicyName: "ExecRolePolicy"
