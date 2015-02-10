@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"os"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/awslabs/aws-sdk-go/aws"
 	awss3 "github.com/awslabs/aws-sdk-go/gen/s3"
 	"github.com/spf13/cobra"
@@ -56,7 +58,7 @@ func putObject(s3 *awss3.S3, bucket string, key string, r io.ReadCloser, a strin
 	default:
 		acl = aws.String(awss3.BucketCannedACLPrivate)
 	}
-	_, err = s3.PutObject(&awss3.PutObjectRequest{
+	resp, err := s3.PutObject(&awss3.PutObjectRequest{
 		Key:           aws.String(key),
 		Bucket:        aws.String(bucket),
 		Body:          r,
@@ -64,5 +66,12 @@ func putObject(s3 *awss3.S3, bucket string, key string, r io.ReadCloser, a strin
 		ACL:           acl,
 		StorageClass:  aws.String(awss3.ObjectStorageClassStandard),
 	})
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"Resp":   fmt.Sprintf("%+v", resp),
+			"bucket": bucket,
+			"key":    key,
+		}).Error("Something went wrong saving the key")
+	}
 	return
 }
