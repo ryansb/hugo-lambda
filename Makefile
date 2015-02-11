@@ -3,7 +3,7 @@ all:
 	@echo "Generated CFN template"
 
 deps: node hugo
-	@echo "All set"
+	@echo "All deps are ready"
 
 node:
 	cd functions/generate/lib && npm install s3 async

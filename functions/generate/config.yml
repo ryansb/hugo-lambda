@@ -8,15 +8,15 @@ cloudformation:
 lambda:
   name: HugoLambdaGenerate
   zipfile_name: HugoGenerate.zip
-  description: An S3-triggered rebuild of a static site.
+  description: An S3-triggered aggregation of static content
   path: lib/
   handler: RunHugo.handler
   runtime: nodejs
   memory_size: 128
-  timeout: 5
+  timeout: 30
   mode: event
-  test_data: input.json
+  test_data: sample.json
   event_sources:
-    - arn: arn:aws:s3:::tar.rsb.io
-  s3_events:
-    - s3:ObjectCreated:*
+    - arn: arn:aws:s3:::input.test.rsb.io
+      events:
+        - s3:ObjectCreated:*
