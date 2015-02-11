@@ -14,10 +14,10 @@ _Basic functionality checklist_
 
 - [x] CloudFormation template for IAM roles and buckets
 - [ ] Diagnostic/debug functionality for functions
-- [ ] Figure out a good place to store configuration
+- [x] Figure out a good place to store configuration
 - [ ] Download site sources to lambda instance
 - [ ] Run hugo
-- [ ] upload output to configured bucket
+- [x] upload output to configured bucket
 
 _Advanced functionality checklist_
 
@@ -60,11 +60,10 @@ Instead of paying for an instance 24/7 to react to events, you only pay for the
 time spent actually reacting. This makes lambda incredibly cheap for cases
 where you have an infrequent event that requires some action to happen.
 
-There are three buckets where content resides. The first is
+There are two buckets where content resides. The first is
 `input.yoursite.com`, which contains all the information hugo needs to generate
-your site. The second is `tar.yoursite.com` which holds tarred and gzipped
-snapshots of your site. The final bucket is the website bucket that holds the
-finished site and serves it to the world.
+your site. The second is the website bucket that holds the finished site and
+serves it to the world.
 
 ## Developing
 
@@ -88,7 +87,7 @@ and will make the correct [Route53][r53] aliases to make your site accessible.
 
 Right now, the following resources are created by the template
 
-1. 4 buckets: `input.ROOT`, `tar.ROOT`, `www.ROOT`, and `ROOT`
+1. 3 buckets: `input.ROOT`, `www.ROOT`, and `ROOT`
 1. 2 domain records: one for your apex and one for `www.ROOT`, which redirects
    to `ROOT` via the `www.ROOT` bucket.
 1. InvokeRole IAM role. The InvokeRole is allowed to trigger lambda functions

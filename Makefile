@@ -1,5 +1,5 @@
 all:
-	@python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < template.yml > functions/hugo-lambda.cfn
+	@python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < template.yml > hugo-lambda.cfn
 	@echo "Generated CFN template"
 
 deps: node hugo

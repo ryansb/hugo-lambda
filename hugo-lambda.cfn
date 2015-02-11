@@ -1,0 +1,362 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09", 
+    "Outputs": {
+        "WebsiteURL": {
+            "Description": "URL for your actual site", 
+            "Value": {
+                "Fn::GetAtt": [
+                    "OutputBucket", 
+                    "WebsiteURL"
+                ]
+            }
+        }
+    }, 
+    "Parameters": {
+        "DomainRoot": {
+            "Default": "test.rsb.io", 
+            "Type": "String", 
+            "Description": "Domain name for your website (example.com)"
+        }
+    }, 
+    "Resources": {
+        "WWWBucket": {
+            "Type": "AWS::S3::Bucket", 
+            "Description": "Aliased bucket for www.domain.com", 
+            "Properties": {
+                "AccessControl": "BucketOwnerFullControl", 
+                "BucketName": {
+                    "Fn::Join": [
+                        ".", 
+                        [
+                            "www", 
+                            {
+                                "Ref": "DomainRoot"
+                            }
+                        ]
+                    ]
+                }, 
+                "WebsiteConfiguration": {
+                    "RedirectAllRequestsTo": {
+                        "HostName": {
+                            "Ref": "OutputBucket"
+                        }
+                    }
+                }
+            }
+        }, 
+        "SiteDNS": {
+            "Type": "AWS::Route53::RecordSetGroup", 
+            "Properties": {
+                "Comment": "Zone apex alias.", 
+                "HostedZoneName": {
+                    "Fn::Join": [
+                        "", 
+                        [
+                            {
+                                "Ref": "DomainRoot"
+                            }, 
+                            "."
+                        ]
+                    ]
+                }, 
+                "RecordSets": [
+                    {
+                        "AliasTarget": {
+                            "HostedZoneId": {
+                                "Fn::FindInMap": [
+                                    "RegionMap", 
+                                    {
+                                        "Ref": "AWS::Region"
+                                    }, 
+                                    "S3hostedzoneID"
+                                ]
+                            }, 
+                            "DNSName": {
+                                "Fn::FindInMap": [
+                                    "RegionMap", 
+                                    {
+                                        "Ref": "AWS::Region"
+                                    }, 
+                                    "websiteendpoint"
+                                ]
+                            }
+                        }, 
+                        "Type": "A", 
+                        "Name": {
+                            "Ref": "DomainRoot"
+                        }
+                    }, 
+                    {
+                        "TTL": "900", 
+                        "Type": "CNAME", 
+                        "Name": {
+                            "Fn::Join": [
+                                "", 
+                                [
+                                    "www.", 
+                                    {
+                                        "Ref": "DomainRoot"
+                                    }
+                                ]
+                            ]
+                        }, 
+                        "ResourceRecords": [
+                            {
+                                "Fn::GetAtt": [
+                                    "WWWBucket", 
+                                    "DomainName"
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        }, 
+        "ExecRole": {
+            "Type": "AWS::IAM::Role", 
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ], 
+                            "Effect": "Allow", 
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }, 
+        "InputBucket": {
+            "Type": "AWS::S3::Bucket", 
+            "Description": "Bucket that editors/clients put new content into", 
+            "Properties": {
+                "AccessControl": "BucketOwnerFullControl", 
+                "BucketName": {
+                    "Fn::Join": [
+                        ".", 
+                        [
+                            "input", 
+                            {
+                                "Ref": "DomainRoot"
+                            }
+                        ]
+                    ]
+                }
+            }
+        }, 
+        "OutputBucket": {
+            "Type": "AWS::S3::Bucket", 
+            "Description": "Bucket that will serve the actual website (content) publicly.", 
+            "Properties": {
+                "AccessControl": "PublicRead", 
+                "BucketName": {
+                    "Ref": "DomainRoot"
+                }, 
+                "WebsiteConfiguration": {
+                    "IndexDocument": "index.html", 
+                    "ErrorDocument": "error.html"
+                }
+            }
+        }, 
+        "InvokeRole": {
+            "Type": "AWS::IAM::Role", 
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ], 
+                            "Effect": "Allow", 
+                            "Condition": {
+                                "ArnLike": {
+                                    "sts:ExternalId": "arn:aws:s3:::*"
+                                }
+                            }, 
+                            "Principal": {
+                                "Service": [
+                                    "s3.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }, 
+        "InvokeRolePolicies": {
+            "Type": "AWS::IAM::Policy", 
+            "Properties": {
+                "PolicyName": "InvokeRolePolicy", 
+                "PolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": [
+                        {
+                            "Action": [
+                                "lambda:InvokeFunction"
+                            ], 
+                            "Resource": [
+                                "*"
+                            ], 
+                            "Effect": "Allow"
+                        }
+                    ]
+                }, 
+                "Roles": [
+                    {
+                        "Ref": "InvokeRole"
+                    }
+                ]
+            }
+        }, 
+        "ExecRolePolicies": {
+            "Type": "AWS::IAM::Policy", 
+            "Properties": {
+                "PolicyName": "ExecRolePolicy", 
+                "PolicyDocument": {
+                    "Version": "2012-10-17", 
+                    "Statement": [
+                        {
+                            "Action": [
+                                "logs:*"
+                            ], 
+                            "Resource": "arn:aws:logs:*:*:*", 
+                            "Effect": "Allow"
+                        }, 
+                        {
+                            "Action": [
+                                "s3:HeadObject", 
+                                "s3:ListAllMyBuckets", 
+                                "s3:GetBucketLocation"
+                            ], 
+                            "Resource": [
+                                "arn:aws:s3:::*"
+                            ], 
+                            "Effect": "Allow"
+                        }, 
+                        {
+                            "Action": "s3:*", 
+                            "Resource": {
+                                "Fn::Join": [
+                                    "", 
+                                    [
+                                        "arn:aws:s3:::", 
+                                        {
+                                            "Ref": "DomainRoot"
+                                        }
+                                    ]
+                                ]
+                            }, 
+                            "Effect": "Allow"
+                        }, 
+                        {
+                            "Action": "s3:*", 
+                            "Resource": {
+                                "Fn::Join": [
+                                    "", 
+                                    [
+                                        "arn:aws:s3:::", 
+                                        {
+                                            "Ref": "DomainRoot"
+                                        }, 
+                                        "/*"
+                                    ]
+                                ]
+                            }, 
+                            "Effect": "Allow"
+                        }, 
+                        {
+                            "Action": [
+                                "s3:Get*", 
+                                "s3:Head*", 
+                                "s3:List*"
+                            ], 
+                            "Resource": {
+                                "Fn::Join": [
+                                    "", 
+                                    [
+                                        "arn:aws:s3:::", 
+                                        "input.", 
+                                        {
+                                            "Ref": "DomainRoot"
+                                        }
+                                    ]
+                                ]
+                            }, 
+                            "Effect": "Allow"
+                        }, 
+                        {
+                            "Action": [
+                                "s3:Get*", 
+                                "s3:Head*", 
+                                "s3:List*"
+                            ], 
+                            "Resource": {
+                                "Fn::Join": [
+                                    "", 
+                                    [
+                                        "arn:aws:s3:::", 
+                                        "input.", 
+                                        {
+                                            "Ref": "DomainRoot"
+                                        }, 
+                                        "/*"
+                                    ]
+                                ]
+                            }, 
+                            "Effect": "Allow"
+                        }
+                    ]
+                }, 
+                "Roles": [
+                    {
+                        "Ref": "ExecRole"
+                    }
+                ]
+            }
+        }
+    }, 
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "websiteendpoint": "s3-website-us-east-1.amazonaws.com", 
+                "S3hostedzoneID": "Z3AQBSTGFYJSTF"
+            }, 
+            "ap-northeast-1": {
+                "websiteendpoint": "s3-website-ap-northeast-1.amazonaws.com", 
+                "S3hostedzoneID": "Z2M4EHUR26P7ZW"
+            }, 
+            "sa-east-1": {
+                "websiteendpoint": "s3-website-sa-east-1.amazonaws.com", 
+                "S3hostedzoneID": "Z31GFT0UA1I2HV"
+            }, 
+            "ap-southeast-1": {
+                "websiteendpoint": "s3-website-ap-southeast-1.amazonaws.com", 
+                "S3hostedzoneID": "Z3O0J2DXBE1FTB"
+            }, 
+            "ap-southeast-2": {
+                "websiteendpoint": "s3-website-ap-southeast-2.amazonaws.com", 
+                "S3hostedzoneID": "Z1WCIGYICN2BYD"
+            }, 
+            "us-west-2": {
+                "websiteendpoint": "s3-website-us-west-2.amazonaws.com", 
+                "S3hostedzoneID": "Z3BJ6K6RIION7M"
+            }, 
+            "us-west-1": {
+                "websiteendpoint": "s3-website-us-west-1.amazonaws.com", 
+                "S3hostedzoneID": "Z2F56UZL2M1ACD"
+            }, 
+            "eu-west-1": {
+                "websiteendpoint": "s3-website-eu-west-1.amazonaws.com", 
+                "S3hostedzoneID": "Z1BKCTXD74EZPE"
+            }
+        }
+    }
+}

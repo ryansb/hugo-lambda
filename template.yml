@@ -126,20 +126,6 @@
                 Fn::Join:
                   - ""
                   - ["arn:aws:s3:::", "input.", {"Ref": "DomainRoot"}, "/*"]
-            -
-              Effect: "Allow"
-              Action: "s3:*"
-              Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", "tar.", {"Ref": "DomainRoot"}]
-            -
-              Effect: "Allow"
-              Action: "s3:*"
-              Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", "tar.", {"Ref": "DomainRoot"}, "/*"]
         Roles:
           - {"Ref": "ExecRole"}
         PolicyName: "ExecRolePolicy"
@@ -177,15 +163,6 @@
           RedirectAllRequestsTo:
             HostName:
               Ref: "OutputBucket"
-        AccessControl: "BucketOwnerFullControl"
-    TarBucket:
-      Type: "AWS::S3::Bucket"
-      Description: "Bucket that stores intermediary archives"
-      Properties:
-        BucketName:
-          Fn::Join:
-            - "."
-            - ["tar", {"Ref": "DomainRoot"}]
         AccessControl: "BucketOwnerFullControl"
     OutputBucket:
       Type: "AWS::S3::Bucket"
