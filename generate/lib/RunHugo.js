@@ -7,8 +7,8 @@ var syncClient = s3.createClient({
     maxAsyncS3: 20,
 });
 
-tmpDir = "/tmp/sources"
-pubDir = tmpDir + "/public"
+tmpDir = "/tmp/sources";
+pubDir = tmpDir + "/public";
 
 exports.handler = function(event, context) {
     // Read options from the event.
