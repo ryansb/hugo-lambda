@@ -1,5 +1,9 @@
-all: hugo node
-	python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < template.yml > functions/hugo-lambda.cfn
+all:
+	@python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < template.yml > functions/hugo-lambda.cfn
+	@echo "Generated CFN template"
+
+deps: node hugo
+	@echo "All set"
 
 node:
 	cd functions/generate/lib && npm install s3 async
