@@ -15,7 +15,7 @@ exports.handler = function(event, context) {
     console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
     var srcBucket = event.Records[0].s3.bucket.name;
     var srcKey    = event.Records[0].s3.object.key;
-    var dstBucket = event.Records[0].s3.bucket.name.replace('input.', 'tar.');
+    var dstBucket = event.Records[0].s3.bucket.name.replace('input.', '');
 
     async.waterfall([
     function download(next) {
@@ -59,6 +59,7 @@ exports.handler = function(event, context) {
             localDir: pubDir,
             deleteRemoved: true,
             s3Params: {
+                ACL: 'public-read',
                 Bucket: dstBucket,
             },
         };

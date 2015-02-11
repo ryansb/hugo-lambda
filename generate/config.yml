@@ -13,7 +13,7 @@ lambda:
   handler: RunHugo.handler
   runtime: nodejs
   memory_size: 128
-  timeout: 30
+  timeout: 60
   mode: event
   test_data: sample.json
   event_sources:
