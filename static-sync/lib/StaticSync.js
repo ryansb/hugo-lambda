@@ -17,7 +17,8 @@ exports.handler = function(event, context) {
     var dstBucket = event.Records[0].s3.bucket.name.replace('input.', '');
 
     var isStaticRe = new RegExp(/(static\/|^talks\/|\.(asc|css|gif|gif|jpe?g|js|pdf|png|pub|rpm|svg|ttf|woff|xml|xml)$)/);
-    if (isStaticRe === null) {
+    if (srcKey.match(isStaticRe) === null) {
+        console.log("Key " + srcKey + " is not static content, bailing out");
         context.done();
     }
 
@@ -25,18 +26,14 @@ exports.handler = function(event, context) {
     function download(next) {
         var params = {
             localDir: tmpDir,
-
             s3Params: {
                 Bucket: srcBucket,
             },
-            function downloadDecision(localfile, s3Object, callback) {
-                if (s3Object.Name.match(isStaticRe) === null) {
-                    // skip objects that aren't static
-                    callback(null, null);
-                } else {
-                    callback(null, s3Object)
-                }
-            },
+            getS3Params: function(localfile, s3Object, callback) {
+                // skip objects that aren't static
+                if (s3Object.Key.match(isStaticRe) === null) callback(null, null)
+                else callback(null, s3Object);
+            }
         };
         var downloader = syncClient.downloadDir(params);
         downloader.on('error', function(err) {
