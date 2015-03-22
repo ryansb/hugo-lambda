@@ -8,7 +8,6 @@ var syncClient = s3.createClient({
 });
 
 tmpDir = "/tmp/sources";
-pubDir = tmpDir + "/public";
 
 exports.handler = function(event, context) {
     // Read options from the event.
@@ -18,8 +17,7 @@ exports.handler = function(event, context) {
     var dstBucket = event.Records[0].s3.bucket.name.replace('input.', '');
 
     var isStaticRe = new RegExp(/(static\/|^talks\/|\.(asc|css|gif|gif|jpe?g|js|pdf|png|pub|rpm|svg|ttf|woff|xml|xml)$)/);
-    // don't run hugo for just static files
-    if (isStaticRe !== null) {
+    if (isStaticRe === null) {
         context.done();
     }
 
@@ -32,8 +30,8 @@ exports.handler = function(event, context) {
                 Bucket: srcBucket,
             },
             function downloadDecision(localfile, s3Object, callback) {
-                if (s3Object.Name.match(isStaticRe) !== null) {
-                    // skip static content
+                if (s3Object.Name.match(isStaticRe) === null) {
+                    // skip objects that aren't static
                     callback(null, null);
                 } else {
                     callback(null, s3Object)
@@ -50,27 +48,9 @@ exports.handler = function(event, context) {
             next(null);
         });
     },
-    function runHugo(next) {
-        console.log("Running hugo");
-        var child = spawn("./hugo", ["-v", "--source=" + tmpDir, "--destination=" + pubDir], {});
-        child.stdout.on('data', function (data) {
-            console.log('hugo-stdout: ' + data);
-        });
-        child.stderr.on('data', function (data) {
-            console.log('hugo-stderr: ' + data);
-        });
-        child.on('error', function(err) {
-            console.log("hugo failed with error: " + err);
-            next(err);
-        });
-        child.on('close', function(code) {
-            console.log("hugo exited with code: " + code);
-            next(null);
-        });
-    },
     function upload(next) {
         var params = {
-            localDir: pubDir,
+            localDir: tmpDir,
             deleteRemoved: false,
             s3Params: {
                 ACL: 'public-read',
