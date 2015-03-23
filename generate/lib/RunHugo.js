@@ -17,7 +17,8 @@ exports.handler = function(event, context) {
     var srcKey    = event.Records[0].s3.object.key;
     var dstBucket = event.Records[0].s3.bucket.name.replace('input.', '');
 
-    var isStaticRe = new RegExp(/(static\/|^talks\/|\.(asc|css|gif|gif|jpe?g|js|pdf|png|pub|rpm|svg|ttf|woff|xml|xml)$)/);
+    var isDirRe = new RegExp(/\/$/);
+    var isStaticRe = new RegExp(/(^static\/|\/static\/)/);
     // don't run hugo for just static files
     if (srcKey.match(isStaticRe) !== null) {
         console.log("Key " + srcKey + " is static content, bailing out");
@@ -34,8 +35,15 @@ exports.handler = function(event, context) {
             },
             getS3Params: function(localfile, s3Object, callback) {
                 // skip static content
-                if (s3Object.Key.match(isStaticRe) !== null) callback(null, null)
-                else callback(null, s3Object);
+                if (s3Object.Key.match(isStaticRe) !== null) {
+                    callback(null, null);
+                    return;
+                }
+                if (s3Object.Key.match(isDirRe) !== null) {
+                    callback(null, null);
+                    return;
+                }
+                callback(null, {});
             },
         };
         var downloader = syncClient.downloadDir(params);
