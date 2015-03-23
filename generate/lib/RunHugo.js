@@ -24,6 +24,11 @@ exports.handler = function(event, context) {
         console.log("Key " + srcKey + " is static content, bailing out");
         context.done();
     }
+    // don't run hugo for git files either
+    if (srcKey.match(/^\.git\//) !== null) {
+        console.log("Key " + srcKey + " is static content, bailing out");
+        context.done();
+    }
 
     async.waterfall([
     function download(next) {
