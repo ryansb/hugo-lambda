@@ -10,7 +10,7 @@
   Parameters:
     DomainRoot:
       Description: "Domain name for your website (example.com)"
-      Default: "test.rsb.io"
+      Default: "rsb.io"
       Type: "String"
   Resources:
     SiteDNS:

@@ -17,6 +17,6 @@ lambda:
   mode: event
   test_data: sample.json
   event_sources:
-    - arn: arn:aws:s3:::input.test.rsb.io
+    - arn: arn:aws:s3:::input.rsb.io
       events:
         - s3:ObjectCreated:*
