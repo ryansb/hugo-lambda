@@ -8,11 +8,11 @@
           "key": "static/css/site.css"
         },
         "bucket": {
-          "arn": "arn:aws:s3:::input.test.rsb.io",
+          "arn": "arn:aws:s3:::input.rsb.io",
           "ownerIdentity": {
             "principalId": "A1LA3Q6S7ANKDV"
           },
-          "name": "input.test.rsb.io"
+          "name": "input.rsb.io"
         },
         "configurationId": "Kappa-HugoLambdaStaticSync-notification",
         "s3SchemaVersion": "1.0"

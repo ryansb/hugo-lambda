@@ -39,6 +39,12 @@ exports.handler = function(event, context) {
         var params = {
             localDir: tmpDir,
             s3Params: dlParams,
+            getS3Params: function(localfile, s3Object, callback) {
+                // skip directory keys because they break the third-party S3 library
+                // heaven knows why...
+                if (s3Object.Key.match(isDirRe) === null) callback(null, {});
+                else callback(null, null);
+            },
         };
         var downloader = syncClient.downloadDir(params);
         downloader.on('error', function(err) {
