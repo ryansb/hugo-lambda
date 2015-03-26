@@ -2,6 +2,10 @@ all:
 	@python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < template.yml > hugo-lambda.cfn
 	@echo "Generated CFN template"
 
+redeploy:
+	cd generate && kappa config.yml deploy && kappa config.yml add_event_sources
+	cd static-sync && kappa config.yml deploy && kappa config.yml add_event_sources
+
 deps: node hugo
 	@echo "All deps are ready"
 
