@@ -8,15 +8,13 @@ A wrapper around the [hugo][hugo] static site generator to have it run in
 [![forthebadge](http://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/uses-badges.svg)](http://forthebadge.com)
 
-Ultra-alpha. 
-
 _Basic functionality checklist_
 
 - [x] CloudFormation template for IAM roles and buckets
 - [ ] Diagnostic/debug functionality for functions
 - [x] Figure out a good place to store configuration
-- [ ] Download site sources to lambda instance
-- [ ] Run hugo
+- [x] Download site sources to lambda instance
+- [x] Run hugo
 - [x] upload output to configured bucket
 
 _Advanced functionality checklist_
@@ -24,7 +22,6 @@ _Advanced functionality checklist_
 - [ ] CloudFormation template to set up cross-domain IAM auth
 - [ ] CloudFormation conditions for users who don't want to use Route53
 - [ ] in-browser markdown editor
-- [ ] Set lifecycle rules and RRS policy for tar bucket
 - [ ] SNS cancellation for in-progress jobs to reduce redundant hugo runs
 
 ## Overview
