@@ -118,6 +118,7 @@ This project is released under the GNU Affero General Public License, see
 [hugo]: https://github.com/spf13/hugo
 [lambda]: https://aws.amazon.com/lambda/
 [kinesis]: https://aws.amazon.com/kinesis/
+[r53]: https://aws.amazon.com/route53/
 [kappa]: https://github.com/garnaat/kappa
 [s3site]: http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html
 [license]: https://github.com/ryansb/hugo-lambda/blob/master/LICENSE.txt
