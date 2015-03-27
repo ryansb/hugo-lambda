@@ -28,11 +28,11 @@ _Advanced functionality checklist_
 
 1. Download this repo and run the CloudFormation template
 1. Upload your site's source to the input.your.site bucket
-1. The first lambda function downloads and compresses the content, then saves
-   it to the tar.your.site bucket.
-1. The second lambda function streams the object from tar.your.site and runs
-   hugo
-1. Generated site is synced to the your.site bucket, and is served by S3 
+1. The first lambda function downloads and syncs any static content to
+   the your.site bucket
+1. The second lambda function pulls down all the theme/template content and
+   runs hugo to generate your site
+1. Generated site is synced to the your.site bucket, and is served by S3
    [static hosting][s3site]
 
 So why go to all this trouble? Because running a CMS like Wordpress, Drupal,
