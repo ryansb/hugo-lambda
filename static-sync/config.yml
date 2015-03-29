@@ -2,7 +2,7 @@
 region: us-east-1
 cloudformation:
   template: ../hugo-lambda.cfn
-  stack_name: HugoLambdaStack
+  stack_name: HugoSiteStack
   exec_role: ExecRole
   invoke_role: InvokeRole
 lambda:
