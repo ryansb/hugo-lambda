@@ -1,5 +1,6 @@
 all:
 	@python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < template.yml > hugo-lambda.cfn
+	@sed -i -e 's/ $$//' hugo-lambda.cfn
 	@echo "Generated CFN template"
 
 redeploy:

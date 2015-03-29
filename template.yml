@@ -32,13 +32,18 @@
             Type: "A"
             Name: {"Ref": "DomainRoot"}
           -
-            ResourceRecords:
-              -
-                Fn::GetAtt:
-                  - "WWWBucket"
-                  - "DomainName"
-            TTL: "900"
-            Type: "CNAME"
+            AliasTarget:
+              DNSName:
+                Fn::FindInMap:
+                  - "RegionMap"
+                  - {"Ref": "AWS::Region"}
+                  - "websiteendpoint"
+              HostedZoneId:
+                Fn::FindInMap:
+                  - "RegionMap"
+                  - {"Ref": "AWS::Region"}
+                  - "S3hostedzoneID"
+            Type: "A"
             Name:
               Fn::Join:
                 - ""

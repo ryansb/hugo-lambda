@@ -87,8 +87,27 @@
                         }
                     },
                     {
-                        "TTL": "900",
-                        "Type": "CNAME",
+                        "AliasTarget": {
+                            "HostedZoneId": {
+                                "Fn::FindInMap": [
+                                    "RegionMap",
+                                    {
+                                        "Ref": "AWS::Region"
+                                    },
+                                    "S3hostedzoneID"
+                                ]
+                            },
+                            "DNSName": {
+                                "Fn::FindInMap": [
+                                    "RegionMap",
+                                    {
+                                        "Ref": "AWS::Region"
+                                    },
+                                    "websiteendpoint"
+                                ]
+                            }
+                        },
+                        "Type": "A",
                         "Name": {
                             "Fn::Join": [
                                 "",
@@ -99,15 +118,7 @@
                                     }
                                 ]
                             ]
-                        },
-                        "ResourceRecords": [
-                            {
-                                "Fn::GetAtt": [
-                                    "WWWBucket",
-                                    "DomainName"
-                                ]
-                            }
-                        ]
+                        }
                     }
                 ]
             }
