@@ -48,6 +48,9 @@ CMS, but without running a server.
 
 ## How it works
 
+*See [these][intro] blog [posts][deploying] for more info on using/deploying
+hugo-lambda*
+
 Lambda is a service that lets you define a node.js function and have it run
 whenever a specific trigger happens. These triggers can be new objects in S3,
 events in a [Kinesis][kinesis] stream, or DynamoDB table updates. Those
@@ -123,3 +126,5 @@ This project is released under the GNU Affero General Public License, see
 [s3site]: http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html
 [license]: https://github.com/ryansb/hugo-lambda/blob/master/LICENSE.txt
 [conduct]: https://github.com/ryansb/hugo-lambda/blob/master/CODE_OF_CONDUCT.md
+[intro]: http://rsb.io/posts/overview-of-hugo-lambda/
+[deploying]: http://rsb.io/posts/deploying-hugo-lambda/
