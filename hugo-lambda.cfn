@@ -159,6 +159,9 @@
                             }
                         ]
                     ]
+                },
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
                 }
             }
         },

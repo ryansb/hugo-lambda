@@ -156,6 +156,8 @@
             - "."
             - ["input", {"Ref": "DomainRoot"}]
         AccessControl: "BucketOwnerFullControl"
+        VersioningConfiguration:
+          Status: Enabled
     WWWBucket:
       Type: "AWS::S3::Bucket"
       Description: "Aliased bucket for www.domain.com"
