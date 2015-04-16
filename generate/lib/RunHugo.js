@@ -13,7 +13,7 @@ pubDir = tmpDir + "/public";
 
 function isDir(dirName) {
     var isDirRe = new RegExp(/\/$/);
-    return dirName.match(isDir) !== null;
+    return dirName.match(isDirRe) !== null;
 }
 
 function isStatic(fName) {
@@ -65,11 +65,6 @@ function staticFile(srcBucket, srcKey, dstBucket, context) {
 }
 
 function siteGenerate(srcBucket, srcKey, dstBucket, context) {
-    try {
-        fs.mkdirSync(tmpDir);
-    } catch (e) {
-        context.done();
-    }
     async.waterfall([
     function download(next) {
         var params = {

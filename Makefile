@@ -11,7 +11,6 @@ template:
 
 node:
 	cd generate/lib && npm install s3 async
-	cd static-sync/lib && npm install s3 async
 
 hugo:
 	curl -L -s https://github.com/spf13/hugo/releases/download/v0.13/hugo_0.13_linux_amd64.tar.gz | tar zxf -
@@ -23,11 +22,9 @@ deps: node hugo
 
 kappa:
 	cd generate && kappa config.yml deploy && kappa config.yml add_event_sources
-	cd static-sync && kappa config.yml deploy && kappa config.yml add_event_sources
 
 test: kappa
 	cd generate && kappa config.yml test
-	cd static-sync && kappa config.yml test
 
 deploy: deps kappa template
 	@echo "Deployed functions. Happy hacking!"
