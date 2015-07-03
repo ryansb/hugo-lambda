@@ -126,6 +126,10 @@ the permissions to create/edit IAM roles. Typically if you aren't an
 administrator on your account (or are using a scoped-down IAM role yourself),
 you won't have the permissions to do this.
 
+If there are problems with the function itself, you can use the
+[awslogs](https://github.com/jorgebastida/awslogs) tool to view the logs from
+your function group.
+
 ## Contributing
 
 Questions, suggestions, bug reports, and contributions are welcome as pull
