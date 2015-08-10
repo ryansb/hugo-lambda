@@ -1,10 +1,10 @@
 ---
 region: us-east-1
-cloudformation:
-  template: ../hugo-lambda.cfn
-  stack_name: HugoSiteStack
-  exec_role: ExecRole
-  invoke_role: InvokeRole
+iam:
+  policy:
+    name: ExecRolePolicy
+  role:
+    name: EXECROLE
 lambda:
   name: HugoLambdaGenerate
   zipfile_name: HugoGenerate.zip
@@ -16,6 +16,11 @@ lambda:
   timeout: 60
   mode: event
   test_data: sample.json
+  permissions:
+    - statement_id: s3_invoke
+      action: lambda:invokeFunction
+      principal: s3.amazonaws.com
+      source_arn: arn:aws:s3:::input.rsb.io
   event_sources:
     - arn: arn:aws:s3:::input.rsb.io
       events:

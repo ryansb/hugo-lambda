@@ -11,7 +11,7 @@
             }
         },
         "ExecRoleName": {
-            "Description": "URL for your actual site",
+            "Description": "Name of the lambda execution role",
             "Value": {
                 "Ref": "ExecRole"
             }

@@ -1,7 +1,8 @@
 all:
 	@echo "Use 'make deploy' to download all dependencies, generate the CFN templates, and deploy the lambda functions"
 	@echo "Use 'make template' to regenerate the CloudFormation template"
-	@echo "Use 'make kappa' to deploy kappa functions"
+	@echo "Use 'make create' to deploy kappa functions the first time"
+	@echo "Use 'make update' to re-deploy kappa functions"
 	@echo "Use 'make test' to prod the lambda functions"
 
 template:
@@ -20,11 +21,18 @@ hugo:
 deps: node hugo
 	@echo "All deps are ready"
 
-kappa:
-	cd generate && kappa config.yml deploy && kappa config.yml add_event_sources
+create: template
+	aws cloudformation create-stack --stack-name HugoSiteStack --template-body file://hugo-lambda.cfn --capabilities CAPABILITY_IAM
+	sleep 60 # wait for the stack to be created, we need the IAM role to exist for the next steps
+	sed -i -e s/EXECROLE/$(shell aws cloudformation describe-stack-resources --stack-name HugoSiteStack --logical-resource-id ExecRole --query 'StackResources[0].PhysicalResourceId')/ generate/config.yml
+	cd generate && kappa config.yml create && kappa config.yml add_event_sources
 
-test: kappa
+update: template
+	aws cloudformation update-stack --stack-name HugoSiteStack --template-body file://hugo-lambda.cfn --capabilities CAPABILITY_IAM || true
+	cd generate && kappa config.yml update_code && kappa config.yml add_event_sources
+
+test:
 	cd generate && kappa config.yml test
 
-deploy: deps kappa template
+deploy: deps create
 	@echo "Deployed functions. Happy hacking!"
