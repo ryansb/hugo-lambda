@@ -46,6 +46,18 @@ hugo-lambda solves this by adding a JS editor to your hugo site, which uploads
 raw markdown to S3 where lambda regenerates your site. All the niceties of a
 CMS, but without running a server.
 
+## Quickstart
+
+To start, you'll need to have GNU `make`, `awscli`, `PyYAML`, and `npm` installed.
+
+1. Clone this repo `git clone https://github.com/ryansb/hugo-lambda`
+1. Replace "input.rsb.io" with your input bucket in `generate/config.yml`
+1. Replace "rsb.io" with your own domain in `template.yml` This must be the
+   root of a Route53 domain you control, and an available bucket name.
+1. Create the function and roles by running `make create`
+1. Upload all your content to input.yourdomain.com
+1. Enjoy!
+
 ## How it works
 
 *See [these][intro] blog [posts][deploying] for more info on using/deploying
@@ -78,7 +90,7 @@ edit, I've moved to editing it in YAML and generating the JSON version to send
 to AWS. If you edit the YAML, you can regenerate the JSON template one of two
 ways.
 
-1. Make sure the `PyYAML` module is installed and run `make`
+1. Make sure the `PyYAML` module is installed and run `make template`
 1. Use a site like [yamltojson.com](http://yamltojson.com/)
 
 To use it, you'll need to provide the base domain of your site. For example,

@@ -7,6 +7,10 @@
           - "OutputBucket"
           - "WebsiteURL"
       Description: "URL for your actual site"
+    ExecRoleName:
+      Value:
+        Ref: "ExecRole"
+      Description: "Name of the lambda execution role"
   Parameters:
     DomainRoot:
       Description: "Domain name for your website (example.com)"

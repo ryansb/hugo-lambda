@@ -9,6 +9,12 @@
                     "WebsiteURL"
                 ]
             }
+        },
+        "ExecRoleName": {
+            "Description": "URL for your actual site",
+            "Value": {
+                "Ref": "ExecRole"
+            }
         }
     },
     "Parameters": {
