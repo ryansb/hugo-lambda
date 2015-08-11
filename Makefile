@@ -1,3 +1,5 @@
+HUGO_VERSION := 0.14
+
 all:
 	@echo "Use 'make deploy' to download all dependencies, generate the CFN templates, and deploy the lambda functions"
 	@echo "Use 'make template' to regenerate the CloudFormation template"
@@ -14,9 +16,9 @@ node:
 	cd generate/lib && npm install s3 async
 
 hugo:
-	curl -L -s https://github.com/spf13/hugo/releases/download/v0.13/hugo_0.13_linux_amd64.tar.gz | tar zxf -
-	mv hugo_0.13_linux_amd64/hugo_0.13_linux_amd64 generate/lib/hugo
-	rm -rf hugo_0.13_linux_amd64
+	curl -L -s https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_linux_amd64.tar.gz | tar zxf -
+	mv hugo_${HUGO_VERSION}_linux_amd64/hugo_${HUGO_VERSION}_linux_amd64 generate/lib/hugo
+	rm -rf hugo_${HUGO_VERSION}_linux_amd64
 
 deps: node hugo
 	@echo "All deps are ready"
