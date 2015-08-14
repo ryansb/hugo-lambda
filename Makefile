@@ -23,10 +23,12 @@ hugo:
 deps: node hugo
 	@echo "All deps are ready"
 
+GETEXEC := sed -i -e s/EXECROLE/$$(aws cloudformation describe-stack-resources --stack-name HugoSiteStack --logical-resource-id ExecRole --query 'StackResources[0].PhysicalResourceId')/ generate/config.yml
+
 create: template
 	aws cloudformation create-stack --stack-name HugoSiteStack --template-body file://hugo-lambda.cfn --capabilities CAPABILITY_IAM
 	sleep 60 # wait for the stack to be created, we need the IAM role to exist for the next steps
-	sed -i -e s/EXECROLE/$(shell aws cloudformation describe-stack-resources --stack-name HugoSiteStack --logical-resource-id ExecRole --query 'StackResources[0].PhysicalResourceId')/ generate/config.yml
+	exec ${GETEXEC}
 	cd generate && kappa config.yml create && kappa config.yml add_event_sources
 
 update: template
