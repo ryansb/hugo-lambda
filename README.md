@@ -58,6 +58,12 @@ To start, you'll need to have GNU `make`, `awscli`, `PyYAML`, and `npm` installe
 1. Upload all your content to input.yourdomain.com
 1. Enjoy!
 
+If you'd just like to try it out, the "demo-site" directory in this repository
+contains a hugo site with a single post that will work. The theme is
+[liquorice](https://github.com/eliasson/liquorice), distributed under the terms
+of the MIT license. To use it, upload the full contents of `demo-site` to the
+`input.yourdomain.com` S3 bucket.
+
 ## How it works
 
 *See [these][intro] blog [posts][deploying] for more info on using/deploying
