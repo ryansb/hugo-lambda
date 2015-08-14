@@ -27,7 +27,7 @@ GETEXEC := sed -i -e s/EXECROLE/$$(aws cloudformation describe-stack-resources -
 
 create: template
 	aws cloudformation create-stack --stack-name HugoSiteStack --template-body file://hugo-lambda.cfn --capabilities CAPABILITY_IAM
-	sleep 60 # wait for the stack to be created, we need the IAM role to exist for the next steps
+	sleep 120 # wait for the stack to be created, we need the IAM role to exist for the next steps
 	exec ${GETEXEC}
 	cd generate && kappa config.yml create && kappa config.yml add_event_sources
 
