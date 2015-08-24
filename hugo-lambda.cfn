@@ -18,10 +18,20 @@
         }
     },
     "Parameters": {
+        "CodeKey": {
+            "Default": "hugo-lambda/generate/latest.zip",
+            "Type": "String",
+            "Description": "S3 key where the zipfile is"
+        },
         "DomainRoot": {
             "Default": "rsb.io",
             "Type": "String",
             "Description": "Domain name for your website (example.com)"
+        },
+        "CodeBucket": {
+            "Default": "files.rsb.io",
+            "Type": "String",
+            "Description": "S3 bucket where the lambda code zipfile is stored"
         }
     },
     "Resources": {
@@ -150,25 +160,27 @@
                 }
             }
         },
-        "InputBucket": {
-            "Type": "AWS::S3::Bucket",
-            "Description": "Bucket that editors/clients put new content into",
+        "HugoLambdaGenerate": {
+            "Type": "AWS::Lambda::Function",
             "Properties": {
-                "AccessControl": "BucketOwnerFullControl",
-                "BucketName": {
-                    "Fn::Join": [
-                        ".",
-                        [
-                            "input",
-                            {
-                                "Ref": "DomainRoot"
-                            }
-                        ]
+                "Code": {
+                    "S3Bucket": {
+                        "Ref": "CodeBucket"
+                    },
+                    "S3Key": {
+                        "Ref": "CodeKey"
+                    }
+                },
+                "Role": {
+                    "Fn::GetAtt": [
+                        "ExecRole",
+                        "Arn"
                     ]
                 },
-                "VersioningConfiguration": {
-                    "Status": "Enabled"
-                }
+                "Timeout": 60,
+                "Handler": "RunHugo.handler",
+                "Runtime": "nodejs",
+                "MemorySize": 128
             }
         },
         "OutputBucket": {
@@ -340,6 +352,27 @@
                         "Ref": "ExecRole"
                     }
                 ]
+            }
+        },
+        "InputBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Description": "Bucket that editors/clients put new content into",
+            "Properties": {
+                "AccessControl": "BucketOwnerFullControl",
+                "BucketName": {
+                    "Fn::Join": [
+                        ".",
+                        [
+                            "input",
+                            {
+                                "Ref": "DomainRoot"
+                            }
+                        ]
+                    ]
+                },
+                "VersioningConfiguration": {
+                    "Status": "Enabled"
+                }
             }
         }
     },

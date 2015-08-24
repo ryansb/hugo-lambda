@@ -159,6 +159,17 @@
               Action:
                 - "sts:AssumeRole"
           Version: "2012-10-17"
+    HugoLambdaGenerate:
+      Type: "AWS::Lambda::Function"
+      Properties:
+        Handler: RunHugo.handler
+        Role: { "Fn::GetAtt": [ExecRole, Arn]}
+        Runtime: nodejs
+        Timeout: 60
+        MemorySize: 128
+        Code:
+          S3Bucket: {"Ref": "CodeBucket"}
+          S3Key: {"Ref": "CodeKey"}
     InputBucket:
       Type: "AWS::S3::Bucket"
       Description: "Bucket that editors/clients put new content into"
