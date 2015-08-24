@@ -22,7 +22,7 @@
       Type: "String"
     CodeKey:
       Description: "S3 key where the zipfile is"
-      Default: "hugo-lambda/generate/latest.zip"
+      Default: "hugo-lambda/generate.latest.zip"
       Type: "String"
   Resources:
     SiteDNS:
