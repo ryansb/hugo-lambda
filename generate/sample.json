@@ -14,7 +14,7 @@
           },
           "name": "input.rsb.io"
         },
-        "configurationId": "Kappa-HugoLambdaCompress-notification",
+        "configurationId": "Kappa-HugoLambdaGenerate-notification",
         "s3SchemaVersion": "1.0"
       },
       "eventVersion": "2.0",

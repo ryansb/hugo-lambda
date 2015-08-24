@@ -35,8 +35,8 @@ update: template
 	aws cloudformation update-stack --stack-name HugoSiteStack --template-body file://hugo-lambda.cfn --capabilities CAPABILITY_IAM || true
 	cd generate && kappa config.yml update_code && kappa config.yml add_event_sources
 
-test:
-	cd generate && kappa config.yml test
+invoke:
+	cd generate && kappa config.yml invoke
 
 deploy: deps create
 	@echo "Deployed functions. Happy hacking!"
