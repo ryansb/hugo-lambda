@@ -181,6 +181,10 @@
         AccessControl: "BucketOwnerFullControl"
         VersioningConfiguration:
           Status: Enabled
+        NotificationConfiguration:
+          TopicConfigurations:
+            - Topic: {"Fn::GetAtt": [HugoLambdaGenerate, Arn]}
+              Event: "ObjectCreated:*"
     WWWBucket:
       Type: "AWS::S3::Bucket"
       Description: "Aliased bucket for www.domain.com"

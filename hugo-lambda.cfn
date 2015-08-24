@@ -359,6 +359,19 @@
             "Description": "Bucket that editors/clients put new content into",
             "Properties": {
                 "AccessControl": "BucketOwnerFullControl",
+                "NotificationConfiguration": {
+                    "TopicConfigurations": [
+                        {
+                            "Topic": {
+                                "Fn::GetAtt": [
+                                    "HugoLambdaGenerate",
+                                    "Arn"
+                                ]
+                            },
+                            "Event": "ObjectCreated:*"
+                        }
+                    ]
+                },
                 "BucketName": {
                     "Fn::Join": [
                         ".",
