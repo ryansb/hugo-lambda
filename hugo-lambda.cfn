@@ -35,6 +35,23 @@
         }
     },
     "Resources": {
+        "SiteChangeTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "DisplayName": "Notifications for new S3 content for Hugo site",
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Fn::GetAtt": [
+                                "HugoLambdaGenerate",
+                                "Arn"
+                            ]
+                        },
+                        "Protocol": "lambda"
+                    }
+                ]
+            }
+        },
         "WWWBucket": {
             "Type": "AWS::S3::Bucket",
             "Description": "Aliased bucket for www.domain.com",
@@ -181,6 +198,46 @@
                 "Handler": "RunHugo.handler",
                 "Runtime": "nodejs",
                 "MemorySize": 128
+            }
+        },
+        "SiteChangeTopicPolicy": {
+            "Type": "AWS::SNS::TopicPolicy",
+            "Properties": {
+                "Topics": [
+                    {
+                        "Ref": "SiteChangeTopic"
+                    }
+                ],
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": "sns:Publish",
+                            "Resorce": {
+                                "Ref": "SiteChangeTopic"
+                            },
+                            "Effect": "Allow",
+                            "Condition": {
+                                "ArnLike": {
+                                    "AWS::SourceArn": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:s3:*:*:",
+                                                "input.",
+                                                {
+                                                    "Ref": "DomainRoot"
+                                                }
+                                            ]
+                                        ]
+                                    }
+                                }
+                            },
+                            "Principal": {
+                                "Service": "s3.amazonaws.com"
+                            }
+                        }
+                    ]
+                }
             }
         },
         "OutputBucket": {

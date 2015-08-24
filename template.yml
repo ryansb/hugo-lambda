@@ -170,6 +170,33 @@
         Code:
           S3Bucket: {"Ref": "CodeBucket"}
           S3Key: {"Ref": "CodeKey"}
+    SiteChangeTopic:
+      Type: "AWS::SNS::Topic"
+      Properties:
+        DisplayName: Notifications for new S3 content for Hugo site
+        Subscription:
+          - Endpoint: {"Fn::GetAtt": [HugoLambdaGenerate, Arn]}
+            Protocol: lambda
+    SiteChangeTopicPolicy:
+      Type: "AWS::SNS::TopicPolicy"
+      Properties:
+        Topics:
+          - {Ref: SiteChangeTopic}
+        PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Principal: {Service: s3.amazonaws.com}
+              Action: "sns:Publish"
+              Resorce: {Ref: SiteChangeTopic}
+              Condition:
+                ArnLike:
+                  "AWS::SourceArn":
+                    "Fn::Join":
+                      - ""
+                      -
+                        - "arn:aws:s3:*:*:"
+                        - "input."
+                        - {Ref: DomainRoot}
     InputBucket:
       Type: "AWS::S3::Bucket"
       Description: "Bucket that editors/clients put new content into"
