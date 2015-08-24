@@ -171,6 +171,8 @@
           S3Bucket: {"Ref": "CodeBucket"}
           S3Key: {"Ref": "CodeKey"}
     SiteChangeTopic:
+      # TODO(ryansb): Get rid of this topic when it's possible to configure
+      # bucket notifications for Lambda
       Type: "AWS::SNS::Topic"
       Properties:
         DisplayName: Notifications for new S3 content for Hugo site
