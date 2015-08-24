@@ -16,6 +16,14 @@
       Description: "Domain name for your website (example.com)"
       Default: "rsb.io"
       Type: "String"
+    CodeBucket:
+      Description: "S3 bucket where the lambda code zipfile is stored"
+      Default: "files.rsb.io"
+      Type: "String"
+    CodeKey:
+      Description: "S3 key where the zipfile is"
+      Default: "hugo-lambda/generate/latest.zip"
+      Type: "String"
   Resources:
     SiteDNS:
       Type: "AWS::Route53::RecordSetGroup"
