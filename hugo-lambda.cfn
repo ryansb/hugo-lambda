@@ -35,6 +35,39 @@
         }
     },
     "Resources": {
+        "BucketLinker": {
+            "Type": "Custom::LambaS3NotificationLink",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::GetAtt": [
+                        "LambdaS3Linker",
+                        "Arn"
+                    ]
+                },
+                "Bucket": {
+                    "Fn::Join": [
+                        ".",
+                        [
+                            "input",
+                            {
+                                "Ref": "DomainRoot"
+                            }
+                        ]
+                    ]
+                },
+                "FunctionArn": {
+                    "Fn::GetAtt": [
+                        "HugoLambdaGenerate",
+                        "Arn"
+                    ]
+                }
+            },
+            "DependsOn": [
+                "HugoLambdaGenerate",
+                "ExecRole",
+                "InputBucket"
+            ]
+        },
         "SiteChangeTopic": {
             "Type": "AWS::SNS::Topic",
             "Properties": {
@@ -239,6 +272,23 @@
                     "IndexDocument": "index.html",
                     "ErrorDocument": "error.html"
                 }
+            }
+        },
+        "LambdaS3Linker": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Handler": "index.handler",
+                "Runtime": "nodejs",
+                "Code": {
+                    "ZipFile": "function sendResponse(e,o,n,t){var s=JSON.stringify({Status:n,Reason:\"See the details in CloudWatch Log Stream: \"+o.logStreamName,PhysicalResourceId:o.logStreamName,StackId:e.StackId,RequestId:e.RequestId,LogicalResourceId:e.LogicalResourceId,Data:t});console.log(\"RESPONSE BODY:\\n\",s);var r=require(\"https\"),i=require(\"url\"),a=i.parse(e.ResponseURL),c={hostname:a.hostname,port:443,path:a.path,method:\"PUT\",headers:{\"content-type\":\"\",\"content-length\":s.length}};console.log(\"SENDING RESPONSE...\\n\");var u=r.request(c,function(e){console.log(\"STATUS: \"+e.statusCode),console.log(\"HEADERS: \"+JSON.stringify(e.headers)),o.done()});u.on(\"error\",function(e){console.log(\"sendResponse Error:\"+e),o.done()}),u.write(s),u.end()}var response=require(\"cfn-response\"),AWS=require(\"aws-sdk\");exports.handler=function(e,o){if(console.log(\"REQUEST RECEIVED:\\n\"+JSON.stringify(e)),\"Delete\"==e.RequestType)return void sendResponse(e,o,\"SUCCESS\");var n=AWS.S3(),t={Bucket:e.ResourceProperties.Bucket,NotificationConfiguration:{LambdaFunctionConfigurations:[{Id:\"HugoSiteNotifier\",Events:[\"s3:ObjectCreated:*\"],LambdaFunctionArn:e.ResourceProperties.FunctionArn}]}};n.putBucketNotificationConfiguration(t,function(n){n?(console.log(n,n.stack),response.send(e,o,\"FAILED\",\"\")):response.send(e,o,\"SUCCESS\",\"\")})};\n"
+                },
+                "Role": {
+                    "Fn::GetAtt": [
+                        "ExecRole",
+                        "Arn"
+                    ]
+                },
+                "Timeout": 5
             }
         },
         "ExecRolePolicies": {
