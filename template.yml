@@ -104,6 +104,12 @@
             - Effect: "Allow"
               Resource: ["*"]
               Action: ["lambda:InvokeFunction"]
+              Condition:
+                ArnLike:
+                  "AWS:SourceArn":
+                    "Fn::Join":
+                        - ":"
+                        - ["arn:aws:sns:*", { Ref: "AWS::AccountId"}, "*"]
             - Effect: "Allow"
               Action:
                 - "s3:HeadObject"
