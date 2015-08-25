@@ -280,8 +280,8 @@
             - "."
             - ["input", {"Ref": "DomainRoot"}]
         AccessControl: "BucketOwnerFullControl"
-        VersioningConfiguration:
-          Status: Enabled
+        #VersioningConfiguration:
+        #  Status: Enabled
         NotificationConfiguration:
           TopicConfigurations:
             - Topic: {Ref: SiteChangeTopic}
