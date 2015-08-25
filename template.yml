@@ -65,33 +65,6 @@
           Fn::Join:
             - ""
             - [{"Ref": "DomainRoot"}, "."]
-    InvokeRolePolicies:
-      Type: "AWS::IAM::Policy"
-      Properties:
-        PolicyName: "InvokeRolePolicy"
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            -
-              Effect: "Allow"
-              Resource: ["*"]
-              Action: ["lambda:InvokeFunction"]
-        Roles:
-          - {"Ref": "InvokeRole"}
-    InvokeRole:
-      Type: "AWS::IAM::Role"
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            -
-              Effect: "Allow"
-              Principal:
-                Service: ["s3.amazonaws.com"]
-              Action: ["sts:AssumeRole"]
-              Condition:
-                ArnLike:
-                  sts:ExternalId: "arn:aws:s3:::*"
     ExecRolePolicies:
       Type: "AWS::IAM::Policy"
       Properties:
