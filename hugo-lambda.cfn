@@ -241,57 +241,6 @@
                 }
             }
         },
-        "InvokeRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Action": [
-                                "sts:AssumeRole"
-                            ],
-                            "Effect": "Allow",
-                            "Condition": {
-                                "ArnLike": {
-                                    "sts:ExternalId": "arn:aws:s3:::*"
-                                }
-                            },
-                            "Principal": {
-                                "Service": [
-                                    "s3.amazonaws.com"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        "InvokeRolePolicies": {
-            "Type": "AWS::IAM::Policy",
-            "Properties": {
-                "PolicyName": "InvokeRolePolicy",
-                "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Action": [
-                                "lambda:InvokeFunction"
-                            ],
-                            "Resource": [
-                                "*"
-                            ],
-                            "Effect": "Allow"
-                        }
-                    ]
-                },
-                "Roles": [
-                    {
-                        "Ref": "InvokeRole"
-                    }
-                ]
-            }
-        },
         "ExecRolePolicies": {
             "Type": "AWS::IAM::Policy",
             "Properties": {
