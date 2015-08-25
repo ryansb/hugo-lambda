@@ -98,19 +98,19 @@
         PolicyDocument:
           Version: "2012-10-17"
           Statement:
-            -
-              Effect: "Allow"
+            - Effect: "Allow"
               Action: ["logs:*"]
               Resource: "arn:aws:logs:*:*:*"
-            -
-              Effect: "Allow"
+            - Effect: "Allow"
+              Resource: ["*"]
+              Action: ["lambda:InvokeFunction"]
+            - Effect: "Allow"
               Action:
                 - "s3:HeadObject"
                 - "s3:ListAllMyBuckets"
                 - "s3:GetBucketLocation"
               Resource: ["arn:aws:s3:::*"]
-            -
-              Effect: "Allow"
+            - Effect: "Allow"
               Action: "s3:*"
               Resource:
                 Fn::Join:
@@ -151,13 +151,10 @@
       Properties:
         AssumeRolePolicyDocument:
           Statement:
-            -
-              Effect: "Allow"
+            - Effect: "Allow"
               Principal:
-                Service:
-                  - "lambda.amazonaws.com"
-              Action:
-                - "sts:AssumeRole"
+                Service: ["lambda.amazonaws.com"]
+              Action: ["sts:AssumeRole"]
           Version: "2012-10-17"
     HugoLambdaGenerate:
       Type: "AWS::Lambda::Function"
