@@ -308,6 +308,31 @@
                         },
                         {
                             "Action": [
+                                "lambda:InvokeFunction"
+                            ],
+                            "Resource": [
+                                "*"
+                            ],
+                            "Effect": "Allow",
+                            "Condition": {
+                                "ArnLike": {
+                                    "AWS:SourceArn": {
+                                        "Fn::Join": [
+                                            ":",
+                                            [
+                                                "arn:aws:sns:*",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                "*"
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "Action": [
                                 "s3:HeadObject",
                                 "s3:ListAllMyBuckets",
                                 "s3:GetBucketLocation"
@@ -319,33 +344,31 @@
                         },
                         {
                             "Action": "s3:*",
-                            "Resource": {
-                                "Fn::Join": [
-                                    "",
-                                    [
-                                        "arn:aws:s3:::",
-                                        {
-                                            "Ref": "DomainRoot"
-                                        }
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "DomainRoot"
+                                            }
+                                        ]
                                     ]
-                                ]
-                            },
-                            "Effect": "Allow"
-                        },
-                        {
-                            "Action": "s3:*",
-                            "Resource": {
-                                "Fn::Join": [
-                                    "",
-                                    [
-                                        "arn:aws:s3:::",
-                                        {
-                                            "Ref": "DomainRoot"
-                                        },
-                                        "/*"
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "DomainRoot"
+                                            },
+                                            "/*"
+                                        ]
                                     ]
-                                ]
-                            },
+                                }
+                            ],
                             "Effect": "Allow"
                         },
                         {
@@ -354,39 +377,33 @@
                                 "s3:Head*",
                                 "s3:List*"
                             ],
-                            "Resource": {
-                                "Fn::Join": [
-                                    "",
-                                    [
-                                        "arn:aws:s3:::",
-                                        "input.",
-                                        {
-                                            "Ref": "DomainRoot"
-                                        }
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            "input.",
+                                            {
+                                                "Ref": "DomainRoot"
+                                            }
+                                        ]
                                     ]
-                                ]
-                            },
-                            "Effect": "Allow"
-                        },
-                        {
-                            "Action": [
-                                "s3:Get*",
-                                "s3:Head*",
-                                "s3:List*"
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            "input.",
+                                            {
+                                                "Ref": "DomainRoot"
+                                            },
+                                            "/*"
+                                        ]
+                                    ]
+                                }
                             ],
-                            "Resource": {
-                                "Fn::Join": [
-                                    "",
-                                    [
-                                        "arn:aws:s3:::",
-                                        "input.",
-                                        {
-                                            "Ref": "DomainRoot"
-                                        },
-                                        "/*"
-                                    ]
-                                ]
-                            },
                             "Effect": "Allow"
                         }
                     ]
