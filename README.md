@@ -27,11 +27,9 @@ _Advanced functionality checklist_
 ## Overview
 
 1. Download this repo and run the CloudFormation template
+1. Open the Lambda function in the console and add an SNS event handler from
+   the SiteChangeTopic queue
 1. Upload your site's source to the input.your.site bucket
-1. The first lambda function downloads and syncs any static content to
-   the your.site bucket
-1. The second lambda function pulls down all the theme/template content and
-   runs hugo to generate your site
 1. Generated site is synced to the your.site bucket, and is served by S3
    [static hosting][s3site]
 
@@ -85,9 +83,8 @@ serves it to the world.
 
 ## Developing
 
-When working on the functions, I recommend using [kappa][kappa] to re-upload
-and trigger the function you've made changes to. Instructions are available in
-kappa's README.
+When working on the functions, you can manually zip the code (with
+dependencies) and upload it to the Lambda console.
 
 ## CloudFormation
 
@@ -108,11 +105,11 @@ Right now, the following resources are created by the template
 1. 3 buckets: `input.ROOT`, `www.ROOT`, and `ROOT`
 1. 2 domain records: one for your apex and one for `www.ROOT`, which redirects
    to `ROOT` via the `www.ROOT` bucket.
-1. InvokeRole IAM role. The InvokeRole is allowed to trigger lambda functions
-   and is used primarily for development
 1. ExecRole IAM Role. The ExecRole is the role that the lambda functions take
    on when they execute. Thi role gets access to the S3 buckets to upload and
    download content.
+1. SiteChangeTopic SNS queue, because CloudFormation can't set up bucket
+   notifications to Lambda directly.
 
 ### Troubleshooting - Oops, my stack failed!
 
@@ -144,7 +141,6 @@ This project is released under the GNU Affero General Public License, see
 [lambda]: https://aws.amazon.com/lambda/
 [kinesis]: https://aws.amazon.com/kinesis/
 [r53]: https://aws.amazon.com/route53/
-[kappa]: https://github.com/garnaat/kappa
 [s3site]: http://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html
 [license]: https://github.com/ryansb/hugo-lambda/blob/master/LICENSE.txt
 [conduct]: https://github.com/ryansb/hugo-lambda/blob/master/CODE_OF_CONDUCT.md
