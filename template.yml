@@ -113,36 +113,24 @@
             - Effect: "Allow"
               Action: "s3:*"
               Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", {"Ref": "DomainRoot"}]
-            -
-              Effect: "Allow"
-              Action: "s3:*"
-              Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", {"Ref": "DomainRoot"}, "/*"]
-            -
-              Effect: "Allow"
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", {"Ref": "DomainRoot"}]
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", {"Ref": "DomainRoot"}, "/*"]
+            - Effect: "Allow"
               Action:
                 - "s3:Get*"
                 - "s3:Head*"
                 - "s3:List*"
               Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", "input.", {"Ref": "DomainRoot"}]
-            -
-              Effect: "Allow"
-              Action:
-                - "s3:Get*"
-                - "s3:Head*"
-                - "s3:List*"
-              Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", "input.", {"Ref": "DomainRoot"}, "/*"]
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", "input.", {"Ref": "DomainRoot"}]
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", "input.", {"Ref": "DomainRoot"}, "/*"]
         Roles:
           - {"Ref": "ExecRole"}
         PolicyName: "ExecRolePolicy"
@@ -182,9 +170,11 @@
         Topics:
           - {Ref: SiteChangeTopic}
         PolicyDocument:
+          Version: "2012-10-17"
           Statement:
             - Effect: Allow
-              Principal: {Service: s3.amazonaws.com}
+              Principal:
+                Service: ["s3.amazonaws.com"]
               Action: "sns:Publish"
               Resorce: {Ref: SiteChangeTopic}
               Condition:
@@ -209,8 +199,8 @@
           Status: Enabled
         NotificationConfiguration:
           TopicConfigurations:
-            - Topic: {"Fn::GetAtt": [HugoLambdaGenerate, Arn]}
-              Event: "ObjectCreated:*"
+            - Topic: {Ref: SiteChangeTopic}
+              Event: "s3:ObjectCreated:*"
     WWWBucket:
       Type: "AWS::S3::Bucket"
       Description: "Aliased bucket for www.domain.com"
