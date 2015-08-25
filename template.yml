@@ -176,16 +176,20 @@
               Principal:
                 Service: ["s3.amazonaws.com"]
               Action: "sns:Publish"
-              Resorce: {Ref: SiteChangeTopic}
-              Condition:
-                ArnLike:
-                  "AWS::SourceArn":
-                    "Fn::Join":
-                      - ""
-                      -
-                        - "arn:aws:s3:*:*:"
-                        - "input."
-                        - {Ref: DomainRoot}
+              Resource: {Ref: SiteChangeTopic}
+              # TODO(ryansb): figure out how to make this conditional work
+              # currently it denies the domain input bucket for unknown
+              # reasons.
+              #Condition:
+              #  ArnLike:
+              #    "AWS::SourceArn":
+              #      "Fn::Join":
+              #        - ""
+              #        -
+              #          - "arn:aws:s3:*:*:"
+              #          - "input."
+              #          - {Ref: DomainRoot}
+              #          - "*"
     InputBucket:
       Type: "AWS::S3::Bucket"
       Description: "Bucket that editors/clients put new content into"

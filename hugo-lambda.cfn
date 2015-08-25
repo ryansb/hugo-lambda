@@ -209,31 +209,18 @@
                     }
                 ],
                 "PolicyDocument": {
+                    "Version": "2012-10-17",
                     "Statement": [
                         {
                             "Action": "sns:Publish",
-                            "Resorce": {
+                            "Resource": {
                                 "Ref": "SiteChangeTopic"
                             },
                             "Effect": "Allow",
-                            "Condition": {
-                                "ArnLike": {
-                                    "AWS::SourceArn": {
-                                        "Fn::Join": [
-                                            "",
-                                            [
-                                                "arn:aws:s3:*:*:",
-                                                "input.",
-                                                {
-                                                    "Ref": "DomainRoot"
-                                                }
-                                            ]
-                                        ]
-                                    }
-                                }
-                            },
                             "Principal": {
-                                "Service": "s3.amazonaws.com"
+                                "Service": [
+                                    "s3.amazonaws.com"
+                                ]
                             }
                         }
                     ]
@@ -420,12 +407,9 @@
                     "TopicConfigurations": [
                         {
                             "Topic": {
-                                "Fn::GetAtt": [
-                                    "HugoLambdaGenerate",
-                                    "Arn"
-                                ]
+                                "Ref": "SiteChangeTopic"
                             },
-                            "Event": "ObjectCreated:*"
+                            "Event": "s3:ObjectCreated:*"
                         }
                     ]
                 },
@@ -439,9 +423,6 @@
                             }
                         ]
                     ]
-                },
-                "VersioningConfiguration": {
-                    "Status": "Enabled"
                 }
             }
         }
