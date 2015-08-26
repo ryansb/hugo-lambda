@@ -151,7 +151,7 @@
                 sendResponse(event, context, "SUCCESS");
                 return;
               }
-              var s3 = AWS.S3();
+              var s3 = new AWS.S3();
               var params = {
                 Bucket: event.ResourceProperties.Bucket,
                 NotificationConfiguration: {
@@ -218,7 +218,7 @@
                 // write data to request body
                 request.write(responseBody);
                 request.end();
-            }
+            };
 
     BucketLinker:
       DependsOn:
