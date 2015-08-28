@@ -96,6 +96,17 @@ function siteGenerate(srcBucket, srcKey, dstBucket, context) {
             next(null);
         });
     },
+    function staticDir(next) {
+        var child = spawn("mkdir", ["-p", tmpDir + "/static"], {});
+        child.on('error', function(err) {
+            console.log("failed to make static dir: " + err);
+            next(err);
+        });
+        child.on('close', function(code) {
+            console.log("made static dir: " + code);
+            next(null);
+        });
+    },
     function runHugo(next) {
         console.log("Running hugo");
         var child = spawn("./hugo", ["-v", "--source=" + tmpDir, "--destination=" + pubDir], {});
