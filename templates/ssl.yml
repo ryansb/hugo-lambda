@@ -1,0 +1,63 @@
+---
+  AWSTemplateFormatVersion: "2010-09-09"
+  Parameters:
+    LetsEncryptEmail:
+      Description: "Email address for your LetsEncrypt cert"
+      Type: String
+    LetsEncryptDomain:
+      Description: "Domain name for LetsEncrypt certificate"
+      Type: String
+    LetsEncryptKeySize:
+      Description: "Key size"
+      Default: 4096
+      Type: Number
+    CloudFrontDistribution:
+      Description: "Distribution ID"
+      Type: String
+  Resources:
+    ExecRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service: ["lambda.amazonaws.com", "s3.amazonaws.com"]
+              Action: ["sts:AssumeRole"]
+          Version: "2012-10-17"
+    ExecRolePolicies:
+      Type: "AWS::IAM::Policy"
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action: ["logs:*"]
+              Resource: "arn:aws:logs:*:*:*"
+            - Effect: "Allow"
+              Action: ["cloudfront:*"]
+              Resource: "*"
+            - Effect: "Allow"
+              Action: 
+                - "iam:GetServerCertificate"
+                - "iam:ListServerCertificates"
+                - "iam:UploadServerCertificate"
+                - "iam:UpdateServerCertificate"
+                - "iam:DeleteServerCertificate"
+              Resource: "*"
+        Roles:
+          - {"Ref": "ExecRole"}
+        PolicyName: "ExecRolePolicy"
+    LetsEncryptRegistrator:
+    # zip creation: launch ami-1ecae776
+    # yum install -y gcc libffi libffi-devel openssl-devel
+    # zip creation: pip install letsencrypt letsencrypt-s3front -t packed_libs
+      Type: "AWS::Lambda::Function"
+      Properties:
+        Handler: lambda_function.lambda_handler
+        Role: { "Fn::GetAtt": [ExecRole, Arn]}
+        Runtime: python2.7
+        Timeout: 120
+        Code:
+          S3Bucket: "demos.serverlesscode.com"
+          S3Key: "letsencrypt-function.zip"
