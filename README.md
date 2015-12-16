@@ -2,6 +2,7 @@
 
 A wrapper around the [hugo][hugo] static site generator to have it run in
 [AWS Lambda][lambda] whenever new (markdown or other) content is uploaded.
+See a tutorial [here](http://bezdelev.com/post/hugo-aws-lambda-static-website/).
 
 ## Project status
 
