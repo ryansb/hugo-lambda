@@ -18,14 +18,16 @@ create: master.json ssl.json function.zip
 	aws cloudformation create-stack --stack-name StaticSiteStack \
 		--template-body file://master.json \
 		--capabilities CAPABILITY_IAM \
-		--parameters "ParameterKey=SSLEmailAddress,ParameterValue=lambda@ryansb.com"
+		--timeout-in-minutes 50 \
+		--parameters '[{"ParameterKey": "DomainRoot", "ParameterValue": "my.site.com"}, {"ParameterKey": "SiteDomain", "ParameterValue": "www.my.site.com"}, {"ParameterKey": "SSLEmailAddress", "ParameterValue": "lambda@ryansb.com"}]'
 
 
 update: master.json ssl.json
 	aws cloudformation update-stack --stack-name StaticSiteStack \
 		--template-body file://master.json \
 		--capabilities CAPABILITY_IAM \
-		--parameters "ParameterKey=SSLEmailAddress,ParameterValue=lambda@ryansb.com"
+		--timeout-in-minutes 50 \
+		--parameters '[{"ParameterKey": "DomainRoot", "ParameterValue": "my.site.com"}, {"ParameterKey": "SiteDomain", "ParameterValue": "www.my.site.com"}, {"ParameterKey": "SSLEmailAddress", "ParameterValue": "lambda@ryansb.com"}]'
 
 delete: master.json
 	aws cloudformation delete-stack --stack-name StaticSiteStack
