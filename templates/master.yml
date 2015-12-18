@@ -20,11 +20,9 @@
     SSLStack:
       Type: "AWS::CloudFormation::Stack"
       Properties:
-        TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/letsencrypt-ssl-template.json"
+        TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/letsencrypt-ssl-reg-template.json"
         Parameters:
-          LetsEncryptDomain: {Ref: SiteDomain}
-          LetsEncryptEmail: {Ref: SSLEmailAddress}
-          CloudFrontDistribution: {Ref: SiteCDN}
+          BucketName: {"Ref": "SiteDomain"}
     StaticBucket:
       Type: "AWS::S3::Bucket"
       Description: "Bucket for static content"
@@ -42,6 +40,8 @@
         AccessControl: "BucketOwnerFullControl"
     SiteCDN:
       Type: "AWS::CloudFront::Distribution"
+      DependsOn:
+        - StaticBucket
       Description: "CDN for site content"
       Properties:
         DistributionConfig:
@@ -92,6 +92,21 @@
           Fn::Join:
             - ""
             - [{"Ref": "DomainRoot"}, "."]
+    SSLAssociation:
+      Type: "Custom::LetsEncryptAssociator"
+      DependsOn:
+        - SiteDNS
+        - SSLStack
+        - SiteCDN
+        - StaticBucket
+      Properties:
+        ServiceToken: {"Fn::GetAtt": [SSLStack, "Outputs.LetsEncryptCustomFunction"]}
+        SourceBucket: {Ref: StaticBucket}
+        Domains:
+          - {Ref: SiteDomain}
+        DistributionId: {Ref: SiteCDN}
+        Email: {Ref: SSLEmailAddress}
+
   Mappings:
     RegionMap:
       # This is a map of the S3 website endpoints as of Feb 08. 2015

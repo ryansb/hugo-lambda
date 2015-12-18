@@ -1,19 +1,9 @@
 ---
   AWSTemplateFormatVersion: "2010-09-09"
   Parameters:
-    LetsEncryptEmail:
-      Description: "Email address for your LetsEncrypt cert"
-      Type: String
-    LetsEncryptDomain:
-      Description: "Domain name for LetsEncrypt certificate"
-      Type: String
-    LetsEncryptKeySize:
-      Description: "Key size"
-      Default: 4096
-      Type: Number
-    CloudFrontDistribution:
-      Description: "Distribution ID"
-      Type: String
+    BucketName:
+      Description: "Name of S3 bucket that serves the web site"
+      Type: "String"
   Resources:
     ExecRole:
       Type: "AWS::IAM::Role"
@@ -32,13 +22,28 @@
           Version: "2012-10-17"
           Statement:
             - Effect: "Allow"
+              Action:
+                - "s3:HeadObject"
+                - "s3:ListAllMyBuckets"
+                - "s3:GetBucketLocation"
+              Resource: ["arn:aws:s3:::*"]
+            - Effect: "Allow"
+              Action: "s3:*"
+              Resource:
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", {"Ref": "BucketName"}]
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", {"Ref": "BucketName"}, "/*"]
+            - Effect: "Allow"
               Action: ["logs:*"]
               Resource: "arn:aws:logs:*:*:*"
             - Effect: "Allow"
               Action: ["cloudfront:*"]
               Resource: "*"
             - Effect: "Allow"
-              Action: 
+              Action:
                 - "iam:GetServerCertificate"
                 - "iam:ListServerCertificates"
                 - "iam:UploadServerCertificate"
@@ -50,14 +55,21 @@
         PolicyName: "ExecRolePolicy"
     LetsEncryptRegistrator:
     # zip creation: launch ami-1ecae776
-    # yum install -y gcc libffi libffi-devel openssl-devel
-    # zip creation: pip install letsencrypt letsencrypt-s3front -t packed_libs
+    # yum install -y gcc libffi libffi-devel openssl-devel python-virtualenv
+    # virtualenv -p /usr/bin/python dep_venv
+    # source dep_venv/bin/activate
+    # pip install letsencrypt letsencrypt-s3front
+    # tar czf deps.tgz dep_venv/lib/python2.7/site-packages
       Type: "AWS::Lambda::Function"
       Properties:
         Handler: lambda_function.lambda_handler
-        Role: { "Fn::GetAtt": [ExecRole, Arn]}
+        Role: {"Fn::GetAtt": [ExecRole, Arn]}
         Runtime: python2.7
         Timeout: 120
         Code:
           S3Bucket: "demos.serverlesscode.com"
           S3Key: "letsencrypt-function.zip"
+  Outputs:
+    LetsEncryptCustomFunction:
+      Description: "Function to register CloudFront sites with Letsencrypt"
+      Value: {"Fn::GetAtt": [LetsEncryptRegistrator, "Arn"]}
