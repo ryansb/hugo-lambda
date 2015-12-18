@@ -14,13 +14,16 @@ master.json: master.yml
 	@sed -i -e 's/ $$//' master.json
 	@echo "Generated master CFN template"
 
-create: master.json
-	aws cloudformation create-stack --stack-name StaticSiteStack --template-body file://master.json \
+create: master.json ssl.json function.zip
+	aws cloudformation create-stack --stack-name StaticSiteStack \
+		--template-body file://master.json \
 		--capabilities CAPABILITY_IAM \
 		--parameters "ParameterKey=SSLEmailAddress,ParameterValue=lambda@ryansb.com"
 
-update: master.json
-	aws cloudformation update-stack --stack-name StaticSiteStack --template-body file://master.json \
+
+update: master.json ssl.json
+	aws cloudformation update-stack --stack-name StaticSiteStack \
+		--template-body file://master.json \
 		--capabilities CAPABILITY_IAM \
 		--parameters "ParameterKey=SSLEmailAddress,ParameterValue=lambda@ryansb.com"
 
