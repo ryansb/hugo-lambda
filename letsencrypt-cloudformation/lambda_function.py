@@ -1,6 +1,11 @@
 from __future__ import print_function
+import logging
+
 from cfn_wrapper import cfn_resource
 import letsencrypt.cli
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 base_arguments = (
