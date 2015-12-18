@@ -31,3 +31,9 @@ update: master.json ssl.json
 
 delete: master.json
 	aws cloudformation delete-stack --stack-name StaticSiteStack
+
+function.zip: lambda_function.py
+	/usr/bin/cp lambda_function.py dependencies/lambda_function.py
+	touch dependencies/zope/__init__.py
+	cd dependencies && zip -r -p ../function.zip *
+	aws s3 cp --acl public-read function.zip s3://demos.serverlesscode.com/letsencrypt-function.zip
