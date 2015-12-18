@@ -50,6 +50,7 @@
           #TODO make this configurable
           DefaultCacheBehavior:
             MinTTL: 300
+            ViewerProtocolPolicy: redirect-to-https
             ForwardedValues:
               QueryString: true
             TargetOriginId: static-site-origin
