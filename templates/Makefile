@@ -1,7 +1,8 @@
 all:
-	@echo "Use 'make template' to regenerate the CloudFormation template"
+	@echo "Use 'make master.json' to generate the CloudFormation template without uploading"
 	@echo "Use 'make create' to deploy the CloudFormation stack"
 	@echo "Use 'make update' to re-deploy the CloudFormation stack"
+	@echo "Use 'make delete' to delete the CloudFormation stack"
 
 ssl.json: ssl.yml
 	@python ./minify.py < ssl.yml > ssl.json
