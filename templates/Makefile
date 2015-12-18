@@ -3,13 +3,11 @@ all:
 	@echo "Use 'make create' to deploy the CloudFormation stack"
 	@echo "Use 'make update' to re-deploy the CloudFormation stack"
 
-templates: master.json ssl.json
-	aws s3 cp --acl public-read ssl.json s3://demos.serverlesscode.com/letsencrypt-ssl-template.json
-
 ssl.json: ssl.yml
 	@python ./minify.py < ssl.yml > ssl.json
 	@sed -i -e 's/ $$//' master.json
 	@echo "Generated SSL CFN template"
+	aws s3 cp --acl public-read ssl.json s3://demos.serverlesscode.com/letsencrypt-ssl-reg-template.json
 
 master.json: master.yml
 	@python ./minify.py < master.yml > master.json
