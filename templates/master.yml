@@ -110,7 +110,8 @@
 
   Mappings:
     RegionMap:
-      # This is a map of the S3 website endpoints as of Feb 08. 2015
+      # This is a map of the S3 website endpoints as of Jan 7 2016
+      # http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
       # Don't edit this
       sa-east-1:
         websiteendpoint: "s3-website-sa-east-1.amazonaws.com"
