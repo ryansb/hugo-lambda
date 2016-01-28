@@ -18,12 +18,10 @@
       Default: 300
       Type: Number
   Resources:
-    SSLStack:
+    AcmStack:
       Type: "AWS::CloudFormation::Stack"
       Properties:
-        TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/letsencrypt-ssl-reg-template.json"
-        Parameters:
-          BucketName: {"Ref": "SiteDomain"}
+        TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/acm-ssl-function.json"
     StaticBucket:
       Type: "AWS::S3::Bucket"
       Description: "Bucket for static content"
