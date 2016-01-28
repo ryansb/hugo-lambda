@@ -93,8 +93,6 @@
             - [{"Ref": "DomainRoot"}, "."]
     AcmCertificate:
       Type: "Custom::AcmCertificate"
-      DependsOn:
-        - AcmStack
       Properties:
         ServiceToken: {"Fn::GetAtt": [AcmStack, "Outputs.AcmFunction"]}
         ValidationOptions:
