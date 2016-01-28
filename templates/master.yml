@@ -2,20 +2,21 @@
   AWSTemplateFormatVersion: "2010-09-09"
   Parameters:
     DomainRoot:
-      Description: "Root domain name for your website (example.com)"
+      Description: "Root domain name for the Route53 records (example.com)"
       Default: "serverlesscode.com"
-      Type: "String"
+      Type: String
     SiteDomain:
       Description: "Domain name for your website (www.example.com)"
       Default: "test.serverlesscode.com"
-      Type: "String"
-    SSLEmailAddress:
-      Description: "Domain name for your website (www.example.com)"
-      Type: "String"
+      Type: String
     CloudFrontPriceClass:
       Description: "Price class. One of PriceClass_100, PriceClass_200, or PriceClass_All"
-      Default: "PriceClass_100"
-      Type: "String"
+      Default: PriceClass_100
+      Type: String
+    CloudFrontCacheMinimum:
+      Description: "Minimum cache lifetime in seconds for the CloudFront distribution"
+      Default: 300
+      Type: Number
   Resources:
     SSLStack:
       Type: "AWS::CloudFormation::Stack"
@@ -42,20 +43,19 @@
       Type: "AWS::CloudFront::Distribution"
       DependsOn:
         - StaticBucket
+      # TODO: when ACM certs are supported, add dependency and use the ACM cert for SSL
       Description: "CDN for site content"
       Properties:
         DistributionConfig:
           Aliases:
               - {Ref: SiteDomain}
-          #TODO make this configurable
           DefaultCacheBehavior:
-            MinTTL: 300
-            ViewerProtocolPolicy: redirect-to-https
+            MinTTL: {Ref: CloudFrontCacheMinimum}
             ForwardedValues:
               QueryString: true
             TargetOriginId: static-site-origin
             # also allowed: redirect-to-https, https-only, allow-all
-            ViewerProtocolPolicy: allow-all
+            ViewerProtocolPolicy: redirect-to-https
           DefaultRootObject: index.html
           Enabled: true
           #configure logging optionally
