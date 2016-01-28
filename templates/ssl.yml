@@ -1,8 +1,9 @@
 ---
   AWSTemplateFormatVersion: "2010-09-09"
   Parameters:
-    BucketName:
-      Description: "Name of S3 bucket that serves the web site"
+    SourceBucketName:
+      Description: "Name of S3 bucket with the ACM connector code"
+      Default: "demos.serverlesscode.com"
       Type: "String"
   Resources:
     ExecRole:
@@ -23,53 +24,27 @@
           Statement:
             - Effect: "Allow"
               Action:
-                - "s3:HeadObject"
-                - "s3:ListAllMyBuckets"
-                - "s3:GetBucketLocation"
-              Resource: ["arn:aws:s3:::*"]
-            - Effect: "Allow"
-              Action: "s3:*"
-              Resource:
-                - Fn::Join:
-                    - ""
-                    - ["arn:aws:s3:::", {"Ref": "BucketName"}]
-                - Fn::Join:
-                    - ""
-                    - ["arn:aws:s3:::", {"Ref": "BucketName"}, "/*"]
+                - "acm:*"
+              Resource: ["*"]
             - Effect: "Allow"
               Action: ["logs:*"]
               Resource: "arn:aws:logs:*:*:*"
-            - Effect: "Allow"
-              Action: ["cloudfront:*"]
-              Resource: "*"
-            - Effect: "Allow"
-              Action:
-                - "iam:GetServerCertificate"
-                - "iam:ListServerCertificates"
-                - "iam:UploadServerCertificate"
-                - "iam:UpdateServerCertificate"
-                - "iam:DeleteServerCertificate"
-              Resource: "*"
         Roles:
           - {"Ref": "ExecRole"}
         PolicyName: "ExecRolePolicy"
-    LetsEncryptRegistrator:
-    # zip creation: launch ami-1ecae776
-    # yum install -y gcc libffi libffi-devel openssl-devel python-virtualenv
-    # virtualenv -p /usr/bin/python dep_venv
-    # source dep_venv/bin/activate
-    # pip install letsencrypt letsencrypt-s3front
-    # tar czf deps.tgz dep_venv/lib/python2.7/site-packages
+    AcmRegistrationFunction:
+      # zip creation: run "make function.zip" on
+      # https://github.com/ryansb/acm-certs-cloudformation
       Type: "AWS::Lambda::Function"
       Properties:
-        Handler: lambda_function.lambda_handler
+        Handler: handler.handler
         Role: {"Fn::GetAtt": [ExecRole, Arn]}
         Runtime: python2.7
-        Timeout: 120
+        Timeout: 300
         Code:
-          S3Bucket: "demos.serverlesscode.com"
-          S3Key: "letsencrypt-function.zip"
+          S3Bucket: {Ref: SourceBucketName}
+          S3Key: "acm-certificate-function.zip"
   Outputs:
-    LetsEncryptCustomFunction:
+    AcmFunction:
       Description: "Function to register CloudFront sites with Letsencrypt"
-      Value: {"Fn::GetAtt": [LetsEncryptRegistrator, "Arn"]}
+      Value: {"Fn::GetAtt": [AcmRegistrationFunction, "Arn"]}

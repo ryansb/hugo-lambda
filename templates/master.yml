@@ -91,20 +91,18 @@
           Fn::Join:
             - ""
             - [{"Ref": "DomainRoot"}, "."]
-    SSLAssociation:
-      Type: "Custom::LetsEncryptAssociator"
+    AcmCertificate:
+      Type: "Custom::AcmCertificate"
       DependsOn:
-        - SiteDNS
-        - SSLStack
-        - SiteCDN
-        - StaticBucket
+        - AcmStack
       Properties:
-        ServiceToken: {"Fn::GetAtt": [SSLStack, "Outputs.LetsEncryptCustomFunction"]}
-        SourceBucket: {Ref: StaticBucket}
+        ServiceToken: {"Fn::GetAtt": [AcmStack, "Outputs.AcmFunction"]}
+        ValidationOptions:
+          - ValidationDomain: {Ref: DomainRoot}
+            DomainName: {Ref: SiteDomain}
         Domains:
           - {Ref: SiteDomain}
-        DistributionId: {Ref: SiteCDN}
-        Email: {Ref: SSLEmailAddress}
+        Await: true
 
   Mappings:
     RegionMap:
