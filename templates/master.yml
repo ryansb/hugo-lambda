@@ -56,7 +56,7 @@
             ViewerProtocolPolicy: redirect-to-https
           DefaultRootObject: index.html
           Enabled: true
-          #configure logging optionally
+          #TODO: configure logging optionally
           #Logging:
           Origins:
             - Id: static-site-origin
