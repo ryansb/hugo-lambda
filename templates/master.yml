@@ -94,13 +94,21 @@
     AcmCertificate:
       Type: "Custom::AcmCertificate"
       Properties:
-        ServiceToken: {"Fn::GetAtt": [AcmStack, "Outputs.AcmFunction"]}
+        ServiceToken: {"Fn::GetAtt": [AcmStack, "Outputs.AcmRegistrationFunction"]}
         ValidationOptions:
           - ValidationDomain: {Ref: DomainRoot}
             DomainName: {Ref: SiteDomain}
         Domains:
           - {Ref: SiteDomain}
         Await: true
+    DistributionCertificate:
+      Type: "Custom::CloudFrontAcmAssociation"
+      Properties:
+        ServiceToken: {"Fn::GetAtt": [AcmStack, "Outputs.AcmAssociationFunction"]}
+        DistributionId:
+          Ref: SiteCDN
+        CertificateArn:
+          Ref: AcmCertificate
 
   Mappings:
     RegionMap:
