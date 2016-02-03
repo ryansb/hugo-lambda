@@ -83,6 +83,6 @@
           S3Bucket: {Ref: SourceBucketName}
           S3Key: "hugo-lambda-function.zip"
   Outputs:
-    AcmFunction:
+    HugoGeneratorFunction:
       Description: "Site building function that takes S3 events and builds hugo sites"
       Value: {"Fn::GetAtt": [HugoLambdaFunction, "Arn"]}

@@ -43,6 +43,10 @@
       Properties:
         BucketName: {"Fn::Join": ['.', ["source", {"Ref": "SiteDomain"}]]}
         AccessControl: "BucketOwnerFullControl"
+        NotificationConfiguration:
+          LambdaConfigurations:
+            Event: s3:ObjectCreated:*
+            Function: {"Fn::GetAtt": [HugoLambdaStack, "Outputs.HugoGeneratorFunction"]}
     SiteCDN:
       Type: "AWS::CloudFront::Distribution"
       DependsOn:
