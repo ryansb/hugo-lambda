@@ -1,0 +1,88 @@
+---
+  AWSTemplateFormatVersion: "2010-09-09"
+  Parameters:
+    SourceBucketName:
+      Description: "Name of S3 bucket with hugo-lambda code zipfile"
+      Default: "demos.serverlesscode.com"
+      Type: String
+    DomainRoot:
+      Description: "Root domain name for the Route53 records (example.com)"
+      Type: String
+  Resources:
+    ExecRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service: ["lambda.amazonaws.com", "s3.amazonaws.com"]
+              Action: ["sts:AssumeRole"]
+          Version: "2012-10-17"
+    ExecRolePolicies:
+      Type: "AWS::IAM::Policy"
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "acm:*"
+              Resource: ["*"]
+            - Effect: "Allow"
+              Action: ["logs:*"]
+              Resource: "arn:aws:logs:*:*:*"
+            - Effect: "Allow"
+              Action:
+                - "s3:ListAllMyBuckets"
+                - "s3:GetBucketLocation"
+              Resource: ["arn:aws:s3:::*"]
+            - Effect: "Allow"
+              Action: "s3:*"
+              Resource:
+                Fn::Join:
+                  - ""
+                  - ["arn:aws:s3:::", {"Ref": "DomainRoot"}]
+            - Effect: "Allow"
+              Action: "s3:*"
+              Resource:
+                Fn::Join:
+                  - ""
+                  - ["arn:aws:s3:::", {"Ref": "DomainRoot"}, "/*"]
+            - Effect: "Allow"
+              Action:
+                - "s3:Get*"
+                - "s3:Head*"
+                - "s3:List*"
+              Resource:
+                Fn::Join:
+                  - ""
+                  - ["arn:aws:s3:::", "source.", {"Ref": "DomainRoot"}]
+            - Effect: "Allow"
+              Action:
+                - "s3:Get*"
+                - "s3:Head*"
+                - "s3:List*"
+              Resource:
+                Fn::Join:
+                  - ""
+                  - ["arn:aws:s3:::", "source.", {"Ref": "DomainRoot"}, "/*"]
+        Roles:
+          - {"Ref": "ExecRole"}
+        PolicyName: "ExecRolePolicy"
+    HugoLambdaFunction:
+      # zip creation: run "make function.zip" on
+      # https://github.com/ryansb/hugo-lambda/
+      Type: "AWS::Lambda::Function"
+      Properties:
+        Handler: run_hugo.handler
+        Role: {"Fn::GetAtt": [ExecRole, Arn]}
+        Runtime: python2.7
+        Timeout: 300
+        Code:
+          S3Bucket: {Ref: SourceBucketName}
+          S3Key: "hugo-lambda-function.zip"
+  Outputs:
+    AcmFunction:
+      Description: "Site building function that takes S3 events and builds hugo sites"
+      Value: {"Fn::GetAtt": [HugoLambdaFunction, "Arn"]}
