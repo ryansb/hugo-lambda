@@ -22,6 +22,12 @@
       Type: "AWS::CloudFormation::Stack"
       Properties:
         TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/acm-ssl-function.json"
+    HugoLambdaStack:
+      Type: "AWS::CloudFormation::Stack"
+      Properties:
+        TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/hugo-lambda-function.json"
+        Parameters:
+          DomainRoot: {Ref: DomainRoot}
     StaticBucket:
       Type: "AWS::S3::Bucket"
       Description: "Bucket for static content"

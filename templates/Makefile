@@ -7,7 +7,7 @@ all:
 	@echo "Use 'make delete' to delete the CloudFormation stack"
 
 clean:
-	rm -f ssl.json master.json
+	rm -f ssl.json master.json hugolambda.json
 
 ssl.json: ssl.yml
 	@python ./minify.py < ssl.yml > ssl.json
@@ -15,12 +15,18 @@ ssl.json: ssl.yml
 	@echo "Generated SSL CFN template"
 	aws s3 cp --acl public-read ssl.json s3://demos.serverlesscode.com/acm-ssl-function.json
 
+hugolambda.json: hugolambda.yml
+	@python ./minify.py < hugolambda.yml > hugolambda.json
+	@sed -i -e 's/ $$//' hugolambda.json
+	@echo "Generated Hugo-Lambda CFN template"
+	aws s3 cp --acl public-read hugolambda.json s3://demos.serverlesscode.com/hugo-lambda-function.json
+
 master.json: master.yml
 	@python ./minify.py < master.yml > master.json
 	@sed -i -e 's/ $$//' master.json
 	@echo "Generated master CFN template"
 
-create: master.json ssl.json
+create: master.json ssl.json hugolambda.json
 	aws cloudformation create-stack --stack-name $(HUGO_LAMBDA_STACK) \
 		--template-body file://master.json \
 		--capabilities CAPABILITY_IAM \
@@ -28,11 +34,11 @@ create: master.json ssl.json
 		--parameters '[{"ParameterKey": "DomainRoot", "ParameterValue": "ryansb.com"}, {"ParameterKey": "SiteDomain", "ParameterValue": "test.ryansb.com"}]'
 
 
-update: master.json ssl.json
+update: master.json ssl.json hugolambda.json
 	aws cloudformation update-stack --stack-name $(HUGO_LAMBDA_STACK) \
 		--template-body file://master.json \
 		--capabilities CAPABILITY_IAM \
 		--parameters '[{"ParameterKey": "DomainRoot", "ParameterValue": "ryansb.com"}, {"ParameterKey": "SiteDomain", "ParameterValue": "test.ryansb.com"}]'
 
-delete: master.json
+delete: master.json hugolambda.json
 	aws cloudformation delete-stack --stack-name $(HUGO_LAMBDA_STACK)
