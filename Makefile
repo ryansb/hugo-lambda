@@ -1,4 +1,4 @@
-HUGO_VERSION := 0.14
+HUGO_VERSION := 0.15
 
 all:
 	@echo "Use 'make deploy' to download all dependencies, generate the CFN templates, and deploy the lambda functions"
