@@ -5,7 +5,7 @@
       Description: "Name of S3 bucket with hugo-lambda code zipfile"
       Default: "demos.serverlesscode.com"
       Type: String
-    DomainRoot:
+    SiteDomain:
       Description: "Root domain name for the Route53 records (example.com)"
       Type: String
   Resources:
@@ -26,10 +26,6 @@
           Version: "2012-10-17"
           Statement:
             - Effect: "Allow"
-              Action:
-                - "acm:*"
-              Resource: ["*"]
-            - Effect: "Allow"
               Action: ["logs:*"]
               Resource: "arn:aws:logs:*:*:*"
             - Effect: "Allow"
@@ -40,33 +36,24 @@
             - Effect: "Allow"
               Action: "s3:*"
               Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", {"Ref": "DomainRoot"}]
-            - Effect: "Allow"
-              Action: "s3:*"
-              Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", {"Ref": "DomainRoot"}, "/*"]
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", {"Ref": "SiteDomain"}]
+                - Fn::Join:
+                    - ""
+                    - ["arn:aws:s3:::", {"Ref": "SiteDomain"}, "/*"]
             - Effect: "Allow"
               Action:
                 - "s3:Get*"
                 - "s3:Head*"
                 - "s3:List*"
               Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", "source.", {"Ref": "DomainRoot"}]
-            - Effect: "Allow"
-              Action:
-                - "s3:Get*"
-                - "s3:Head*"
-                - "s3:List*"
-              Resource:
-                Fn::Join:
-                  - ""
-                  - ["arn:aws:s3:::", "source.", {"Ref": "DomainRoot"}, "/*"]
+                  - Fn::Join:
+                      - ""
+                      - ["arn:aws:s3:::", "source.", {"Ref": "SiteDomain"}]
+                  - Fn::Join:
+                      - ""
+                      - ["arn:aws:s3:::", "source.", {"Ref": "SiteDomain"}, "/*"]
         Roles:
           - {"Ref": "ExecRole"}
         PolicyName: "ExecRolePolicy"

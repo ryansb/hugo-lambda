@@ -27,7 +27,7 @@
       Properties:
         TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/hugo-lambda-function.json"
         Parameters:
-          DomainRoot: {Ref: DomainRoot}
+          SiteDomain: {Ref: SiteDomain}
     StaticBucket:
       Type: "AWS::S3::Bucket"
       Description: "Bucket for static content"
