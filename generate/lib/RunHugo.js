@@ -161,10 +161,10 @@ function handleFile(srcBucket, srcKey, dstBucket, context) {
 exports.handler = function(event, context) {
     // Read options from the event.
     console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
-    var message = JSON.parse(event.Records[0].Sns.Message);
-    var srcBucket = message.Records[0].s3.bucket.name;
-    var srcKey    = message.Records[0].s3.object.key;
-    var dstBucket = message.Records[0].s3.bucket.name.replace('input.', '');
+    //var message = JSON.parse(event.Records[0]);
+    var srcBucket = event.Records[0].s3.bucket.name;
+    var srcKey    = event.Records[0].s3.object.key;
+    var dstBucket = event.Records[0].s3.bucket.name.replace('source.', '');
 
     // don't run hugo for git files
     if (srcKey.match(/^\.git\//) !== null) {
