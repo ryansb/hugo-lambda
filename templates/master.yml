@@ -1,0 +1,155 @@
+---
+  AWSTemplateFormatVersion: "2010-09-09"
+  Parameters:
+    DomainRoot:
+      Description: "Root domain name for the Route53 records (example.com)"
+      Default: "serverlesscode.com"
+      Type: String
+    SiteDomain:
+      Description: "Domain name for your website (www.example.com)"
+      Default: "test.serverlesscode.com"
+      Type: String
+    CloudFrontPriceClass:
+      Description: "Price class. One of PriceClass_100, PriceClass_200, or PriceClass_All"
+      Default: PriceClass_100
+      Type: String
+    CloudFrontCacheMinimum:
+      Description: "Minimum cache lifetime in seconds for the CloudFront distribution"
+      Default: 300
+      Type: Number
+  Resources:
+    AcmStack:
+      Type: "AWS::CloudFormation::Stack"
+      Properties:
+        TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/acm-ssl-function.json"
+    HugoLambdaStack:
+      Type: "AWS::CloudFormation::Stack"
+      Properties:
+        TemplateURL: "https://s3.amazonaws.com/demos.serverlesscode.com/hugo-lambda-function.json"
+        Parameters:
+          SiteDomain: {Ref: SiteDomain}
+    StaticBucket:
+      Type: "AWS::S3::Bucket"
+      Description: "Bucket for static content"
+      Properties:
+        BucketName: {"Ref": "SiteDomain"}
+        AccessControl: "BucketOwnerFullControl"
+        WebsiteConfiguration:
+          ErrorDocument: 404.html
+          IndexDocument: index.html
+    SourceBucket:
+      Type: "AWS::S3::Bucket"
+      DependsOn: [HugoLambdaStack]
+      Description: "Bucket for site source code"
+      Properties:
+        BucketName: {"Fn::Join": ['.', ["source", {"Ref": "SiteDomain"}]]}
+        AccessControl: "BucketOwnerFullControl"
+        #NotificationConfiguration:
+        #  LambdaConfigurations:
+        #    - Event: "s3:ObjectCreated:*"
+        #      Function: {"Fn::GetAtt": [HugoLambdaStack, "Outputs.HugoGeneratorFunction"]}
+    SiteCDN:
+      Type: "AWS::CloudFront::Distribution"
+      DependsOn:
+        - StaticBucket
+      # TODO: when ACM certs are supported, add dependency and use the ACM cert for SSL
+      Description: "CDN for site content"
+      Properties:
+        DistributionConfig:
+          Aliases:
+              - {Ref: SiteDomain}
+          DefaultCacheBehavior:
+            MinTTL: {Ref: CloudFrontCacheMinimum}
+            ForwardedValues:
+              QueryString: true
+            TargetOriginId: static-site-origin
+            # also allowed: redirect-to-https, https-only, allow-all
+            ViewerProtocolPolicy: redirect-to-https
+          DefaultRootObject: index.html
+          Enabled: true
+          #TODO: configure logging optionally
+          #Logging:
+          Origins:
+            - Id: static-site-origin
+              DomainName:
+                "Fn::Join":
+                  - "."
+                  -
+                    - {Ref: SiteDomain}
+                    - Fn::FindInMap:
+                      - "RegionMap"
+                      - {"Ref": "AWS::Region"}
+                      - "websiteendpoint"
+              CustomOriginConfig:
+                HTTPPort: 80
+                HTTPSPort: 443
+                # can be http-only, match-viewer
+                OriginProtocolPolicy: http-only
+          PriceClass: {Ref: CloudFrontPriceClass}
+    SiteDNS:
+      Type: "AWS::Route53::RecordSetGroup"
+      Properties:
+        RecordSets:
+          - AliasTarget:
+              DNSName: {"Fn::GetAtt": [SiteCDN, DomainName]}
+              # magic cloudfront hosted zone id
+              # see http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html
+              HostedZoneId: Z2FDTNDATAQYW2
+            Type: "A"
+            Name: {Ref: SiteDomain}
+        Comment: "DNS for website"
+        HostedZoneName:
+          Fn::Join:
+            - ""
+            - [{"Ref": "DomainRoot"}, "."]
+    AcmCertificate:
+      Type: "Custom::AcmCertificate"
+      Properties:
+        ServiceToken: {"Fn::GetAtt": [AcmStack, "Outputs.AcmRegistrationFunction"]}
+        ValidationOptions:
+          - ValidationDomain: {Ref: DomainRoot}
+            DomainName: {Ref: SiteDomain}
+        Domains:
+          - {Ref: SiteDomain}
+        Await: true
+    DistributionCertificate:
+      Type: "Custom::CloudFrontAcmAssociation"
+      Properties:
+        ServiceToken: {"Fn::GetAtt": [AcmStack, "Outputs.AcmAssociationFunction"]}
+        DistributionId:
+          Ref: SiteCDN
+        CertificateArn:
+          Ref: AcmCertificate
+
+  Mappings:
+    RegionMap:
+      # This is a map of the S3 website endpoints as of Jan 7 2016
+      # http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+      # Don't edit this
+      sa-east-1:
+        websiteendpoint: "s3-website-sa-east-1.amazonaws.com"
+        S3hostedzoneID: "Z31GFT0UA1I2HV"
+      ap-northeast-1:
+        websiteendpoint: "s3-website-ap-northeast-1.amazonaws.com"
+        S3hostedzoneID: "Z2M4EHUR26P7ZW"
+      ap-northeast-2:
+        websiteendpoint: "s3-website-ap-northeast-2.amazonaws.com"
+        S3hostedzoneID: "Z3W03O7B5YMIYP"
+      ap-southeast-1:
+        websiteendpoint: "s3-website-ap-southeast-1.amazonaws.com"
+        S3hostedzoneID: "Z3O0J2DXBE1FTB"
+      ap-southeast-2:
+        websiteendpoint: "s3-website-ap-southeast-2.amazonaws.com"
+        S3hostedzoneID: "Z1WCIGYICN2BYD"
+      eu-west-1:
+        websiteendpoint: "s3-website-eu-west-1.amazonaws.com"
+        S3hostedzoneID: "Z1BKCTXD74EZPE"
+      us-west-2:
+        websiteendpoint: "s3-website-us-west-2.amazonaws.com"
+        S3hostedzoneID: "Z3BJ6K6RIION7M"
+      us-west-1:
+        websiteendpoint: "s3-website-us-west-1.amazonaws.com"
+        S3hostedzoneID: "Z2F56UZL2M1ACD"
+      us-east-1:
+        websiteendpoint: "s3-website-us-east-1.amazonaws.com"
+        S3hostedzoneID: "Z3AQBSTGFYJSTF"

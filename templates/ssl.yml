@@ -1,0 +1,66 @@
+---
+  AWSTemplateFormatVersion: "2010-09-09"
+  Parameters:
+    SourceBucketName:
+      Description: "Name of S3 bucket with the ACM connector code"
+      Default: "demos.serverlesscode.com"
+      Type: "String"
+  Resources:
+    ExecRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service: ["lambda.amazonaws.com"]
+              Action: ["sts:AssumeRole"]
+          Version: "2012-10-17"
+    ExecRolePolicies:
+      Type: "AWS::IAM::Policy"
+      Properties:
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "acm:*"
+                - "cloudfront:List*"
+                - "cloudfront:Get*"
+                - "cloudfront:UpdateDistribution"
+              Resource: ["*"]
+            - Effect: "Allow"
+              Action: ["logs:*"]
+              Resource: "arn:aws:logs:*:*:*"
+        Roles:
+          - {"Ref": "ExecRole"}
+        PolicyName: "ExecRolePolicy"
+    AcmRegistrationFunction:
+      # https://github.com/ryansb/acm-certs-cloudformation
+      Type: "AWS::Lambda::Function"
+      Properties:
+        Handler: acm_handler.handler
+        Role: {"Fn::GetAtt": [ExecRole, Arn]}
+        Runtime: python2.7
+        Timeout: 300
+        Code:
+          S3Bucket: {Ref: SourceBucketName}
+          S3Key: "acm-certificate-resource-functions.zip"
+    AcmAssociationFunction:
+      # https://github.com/ryansb/acm-certs-cloudformation
+      Type: "AWS::Lambda::Function"
+      Properties:
+        Handler: cloudfront_associator.handler
+        Role: {"Fn::GetAtt": [ExecRole, Arn]}
+        Runtime: python2.7
+        Timeout: 60
+        Code:
+          S3Bucket: {Ref: SourceBucketName}
+          S3Key: "acm-certificate-resource-functions.zip"
+  Outputs:
+    AcmRegistrationFunction:
+      Description: "Function to issue ACM certs"
+      Value: {"Fn::GetAtt": [AcmRegistrationFunction, "Arn"]}
+    AcmAssociationFunction:
+      Description: "Function to register CloudFront sites with Letsencrypt"
+      Value: {"Fn::GetAtt": [AcmAssociationFunction, "Arn"]}
