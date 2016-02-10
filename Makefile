@@ -14,6 +14,9 @@ template:
 
 node:
 	cd generate/lib && npm install s3 async
+	rm generate/generate.zip || true
+	cd generate/lib && zip -r ../generate.zip *
+	aws s3 cp --acl public-read generate/generate.zip s3://demos.serverlesscode.com/hugo-lambda-function-javascript.zip
 
 hugo:
 	curl -L -s https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_linux_amd64.tar.gz | tar zxf -

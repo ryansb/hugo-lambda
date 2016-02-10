@@ -62,13 +62,14 @@
       # https://github.com/ryansb/hugo-lambda/
       Type: "AWS::Lambda::Function"
       Properties:
-        Handler: run_hugo.handler
+        Handler: RunHugo.handler
         Role: {"Fn::GetAtt": [ExecRole, Arn]}
-        Runtime: python2.7
+        Runtime: nodejs
+        MemorySize: 256
         Timeout: 300
         Code:
           S3Bucket: {Ref: SourceBucketName}
-          S3Key: "hugo-lambda-function.zip"
+          S3Key: "hugo-lambda-function-javascript.zip"
   Outputs:
     HugoGeneratorFunction:
       Description: "Site building function that takes S3 events and builds hugo sites"
